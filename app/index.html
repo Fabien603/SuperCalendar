@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperCalendrier 2025</title>
+    <link href="css/style.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>SuperCalendrier</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Navigation</div>
+                <div class="nav-item active" data-view="yearly">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>Vue annuelle</span>
+                </div>
+                <div class="nav-item" data-view="monthly">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Vue mensuelle</span>
+                </div>
+                <div class="nav-item" data-view="weekly">
+                    <i class="fas fa-calendar-week"></i>
+                    <span>Vue hebdomadaire</span>
+                </div>
+                <div class="nav-item" data-view="daily">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>Vue quotidienne</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Catégories</div>
+                <div id="categories-nav">
+                    <!-- Les catégories seront ajoutées ici dynamiquement -->
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Outils</div>
+                <div class="nav-item" id="add-category-btn">
+                    <i class="fas fa-tags"></i>
+                    <span>Gérer les catégories</span>
+                </div>
+                <div class="nav-item" id="import-export-btn">
+                    <i class="fas fa-file-export"></i>
+                    <span>Importer / Exporter</span>
+                </div>
+                <div class="nav-item" id="settings-btn">
+                    <i class="fas fa-gear"></i>
+                    <span>Paramètres</span>
+                </div>
+                <div class="nav-item" id="print-btn">
+                    <i class="fas fa-print"></i>
+                    <span>Imprimer</span>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="header">
+                <button class="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="page-title" id="current-view-title">Vue annuelle</div>
+                
+                <div class="header-actions">
+                    <div class="theme-switcher">
+                        <i class="fas fa-sun theme-icon"></i>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <i class="fas fa-moon theme-icon"></i>
+                    </div>
+                    
+                    <button class="btn-icon" id="today-btn" title="Aujourd'hui">
+                        <i class="fas fa-calendar-day"></i>
+                    </button>
+                    
+                    <button class="btn-icon" id="add-event-quick-btn" title="Ajouter un événement">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Contenu dynamique selon la vue -->
+            <div id="view-container">
+                <!-- Vue annuelle (par défaut) -->
+                <section id="yearly-view" class="view-section active">
+                    <div class="year-navigation">
+                        <button class="nav-btn" id="prev-year">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="year-label" id="current-year">2025</div>
+                        <button class="nav-btn" id="next-year">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="months-grid" id="calendar">
+                        <!-- Les mois seront ajoutés ici dynamiquement -->
+                    </div>
+                </section>
+                
+                <!-- Vue mensuelle -->
+                <section id="monthly-view" class="view-section">
+                    <div class="month-navigation">
+                        <button class="nav-btn" id="prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="month-year-label">
+                            <div class="month-label" id="current-month">Janvier</div>
+                            <div class="year-label-small" id="current-year-monthly">2025</div>
+                        </div>
+                        <button class="nav-btn" id="next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="month-calendar" id="month-calendar">
+                        <!-- Le calendrier mensuel sera ajouté ici dynamiquement -->
+                    </div>
+                </section>
+                
+                <!-- Vue hebdomadaire -->
+                <section id="weekly-view" class="view-section">
+                    <div class="week-navigation">
+                        <button class="nav-btn" id="prev-week">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="week-label" id="current-week">Semaine du 1 au 7 janvier 2025</div>
+                        <button class="nav-btn" id="next-week">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="week-calendar" id="week-calendar">
+                        <!-- Le calendrier hebdomadaire sera ajouté ici dynamiquement -->
+                    </div>
+                </section>
+                
+                <!-- Vue quotidienne -->
+                <section id="daily-view" class="view-section">
+                    <div class="day-navigation">
+                        <button class="nav-btn" id="prev-day">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="day-label" id="current-day">Mercredi 1 janvier 2025</div>
+                        <button class="nav-btn" id="next-day">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="day-schedule" id="day-schedule">
+                        <!-- L'agenda quotidien sera ajouté ici dynamiquement -->
+                    </div>
+                </section>
+            </div>
+            
+            <section class="event-section">
+                <div class="section-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Ajouter un événement
+                </div>
+                
+                <div class="event-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-title">Titre de l'événement</label>
+                            <input type="text" id="event-title" class="form-control" placeholder="Ex: Compétition européenne de golf">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-start-date">Date de début</label>
+                            <input type="date" id="event-start-date" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="event-start-time">Heure de début</label>
+                            <input type="time" id="event-start-time" class="form-control">
+                        </div>
+                        
+                        <div class="form-group" style="flex: 0.5; display: flex; align-items: flex-end; padding-bottom: 12px;">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="event-all-day">
+                                Toute la journée
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-end-date">Date de fin</label>
+                            <input type="date" id="event-end-date" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="event-end-time">Heure de fin</label>
+                            <input type="time" id="event-end-time" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-category">Catégorie</label>
+                            <select id="event-category" class="form-control">
+                                <!-- Les catégories seront ajoutées ici dynamiquement -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="event-location">Lieu</label>
+                            <input type="text" id="event-location" class="form-control" placeholder="Ex: Portugal">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-recurrence">Récurrence</label>
+                            <select id="event-recurrence" class="form-control">
+                                <option value="none">Aucune récurrence</option>
+                                <option value="daily">Tous les jours</option>
+                                <option value="weekly">Toutes les semaines</option>
+                                <option value="monthly">Tous les mois</option>
+                                <option value="yearly">Tous les ans</option>
+                                <option value="custom">Personnalisée...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group recurrence-options" style="display: none;">
+                            <label>Options de récurrence</label>
+                            <div id="recurrence-options-container">
+                                <!-- Options de récurrence dynamiques -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-description">Description</label>
+                            <textarea id="event-description" class="form-control" placeholder="Détails supplémentaires sur l'événement..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button id="add-event" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Ajouter l'événement
+                            </button>
+                            <button id="update-event" class="btn btn-primary" style="display: none;">
+                                <i class="fas fa-save"></i>
+                                Mettre à jour l'événement
+                            </button>
+                            <button id="cancel-edit" class="btn btn-secondary" style="display: none;">
+                                <i class="fas fa-times"></i>
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="event-section">
+                <div class="section-title">
+                    <i class="fas fa-calendar-check"></i>
+                    Événements à venir
+                </div>
+                
+                <div class="events-list" id="events-container">
+                    <!-- Les événements seront ajoutés ici dynamiquement -->
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Modal pour gérer les catégories -->
+    <div class="modal-overlay" id="categories-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Gérer les catégories</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category-name">Nom de la catégorie</label>
+                        <input type="text" id="category-name" class="form-control" placeholder="Ex: Réunion">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category-emoji">Emoji</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="category-emoji" class="form-control" placeholder="Ex: 📅" maxlength="2" style="width: 80px; text-align: center; font-size: 20px;">
+                            <button id="emoji-picker-button" class="btn btn-secondary">
+                                <i class="far fa-laugh"></i>
+                                Choisir un emoji
+                            </button>
+                        </div>
+                        <div id="emoji-picker" class="emoji-picker" style="display: none;">
+                            <!-- Les emojis seront ajoutés ici dynamiquement -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category-color">Couleur</label>
+                        <input type="color" id="category-color" class="form-control" value="#4caf50" style="height: 40px; width: 100%;">
+                    </div>
+                </div>
+                
+                <div class="form-row" style="justify-content: flex-end;">
+                    <button id="add-category" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Ajouter la catégorie
+                    </button>
+                    <button id="update-category" class="btn btn-primary" style="display: none;">
+                        <i class="fas fa-save"></i>
+                        Mettre à jour la catégorie
+                    </button>
+                </div>
+                
+                <hr style="margin: 20px 0; border-color: var(--border);">
+                
+                <div id="category-list">
+                    <!-- Les catégories seront ajoutées ici dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour importer/exporter des données -->
+    <div class="modal-overlay" id="import-export-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Importer / Exporter des données</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <p style="margin-bottom: 20px;">Exportez vos données pour les sauvegarder ou les importer sur un autre appareil.</p>
+                
+                <div class="form-row">
+                    <button id="export-json" class="btn btn-primary">
+                        <i class="fas fa-download"></i>
+                        Exporter en JSON
+                    </button>
+                    
+                    <button id="export-ics" class="btn btn-primary">
+                        <i class="fas fa-download"></i>
+                        Exporter en iCal
+                    </button>
+                </div>
+                
+                <hr style="margin: 20px 0; border-color: var(--border);">
+                
+                <p style="margin-bottom: 20px;">Importez des données précédemment exportées.</p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="import-file">Fichier de données (JSON ou iCal)</label>
+                        <input type="file" id="import-file" class="form-control" accept=".json,.ics">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <button id="import-data" class="btn btn-primary">
+                        <i class="fas fa-upload"></i>
+                        Importer les données
+                    </button>
+                </div>
+                
+                <div id="import-status" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour les paramètres -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Paramètres</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="settings-theme">Thème</label>
+                        <select id="settings-theme" class="form-control">
+                            <option value="light">Clair</option>
+                            <option value="dark">Sombre</option>
+                            <option value="system">Système</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="settings-first-day">Premier jour de la semaine</label>
+                        <select id="settings-first-day" class="form-control">
+                            <option value="1">Lundi</option>
+                            <option value="0">Dimanche</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="settings-time-format">Format d'heure</label>
+                        <select id="settings-time-format" class="form-control">
+                            <option value="24h">24 heures</option>
+                            <option value="12h">12 heures (AM/PM)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="settings-notifications">Notifications</label>
+                        <select id="settings-notifications" class="form-control">
+                            <option value="all">Toutes les notifications</option>
+                            <option value="important">Événements importants uniquement</option>
+                            <option value="none">Aucune notification</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Nouvelle option pour désactiver temporairement les notifications -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="disable-notifications-temp">
+                            Désactiver temporairement toutes les notifications
+                        </label>
+                        <div class="hint-text">
+                            Cette option désactive toutes les notifications jusqu'à ce que vous la désactiviez,
+                            sans modifier vos paramètres de notification permanents.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row" style="justify-content: flex-end;">
+                    <button id="save-settings" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Enregistrer les paramètres
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour l'impression -->
+    <div class="modal-overlay" id="print-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Options d'impression</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="print-view">Vue à imprimer</label>
+                        <select id="print-view" class="form-control">
+                            <option value="yearly">Calendrier annuel</option>
+                            <option value="monthly">Calendrier mensuel</option>
+                            <option value="weekly">Planning hebdomadaire</option>
+                            <option value="daily">Agenda journalier</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="print-format">Format de papier</label>
+                        <select id="print-format" class="form-control">
+                            <option value="A4">A4</option>
+                            <option value="A5">A5</option>
+                            <option value="A3">A3</option>
+                            <option value="A6">A6</option>
+                            <option value="A2">A2</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="print-orientation">Orientation</label>
+                        <select id="print-orientation" class="form-control">
+                            <option value="portrait">Portrait</option>
+                            <option value="landscape">Paysage</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Options d'affichage</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="print-show-categories" checked>
+                                Afficher les catégories
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="print-show-descriptions" checked>
+                                Afficher les descriptions
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="print-show-locations" checked>
+                                Afficher les lieux
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="print-use-colors" checked>
+                                Utiliser les couleurs
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row" style="justify-content: flex-end;">
+                    <button id="print-preview" class="btn btn-secondary">
+                        <i class="fas fa-eye"></i>
+                        Aperçu
+                    </button>
+                    <button id="print-now" class="btn btn-primary">
+                        <i class="fas fa-print"></i>
+                        Imprimer
+                    </button>
+                    <button id="export-pdf" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i>
+                        Exporter en PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>

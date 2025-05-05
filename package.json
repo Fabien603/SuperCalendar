@@ -1,0 +1,84 @@
+{
+    "name": "super-calendrier",
+    "productName": "SuperCalendrier",
+    "version": "1.0.0",
+    "description": "Une application de calendrier moderne et personnalisable basée sur Electron",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "debug": "electron . --enable-logging",
+        "dev": "electron . --inspect",
+        "watch": "nodemon --exec electron .",
+        "build": "electron-builder",
+        "build:win": "electron-builder --win",
+        "build:mac": "electron-builder --mac",
+        "build:linux": "electron-builder --linux",
+        "postinstall": "electron-builder install-app-deps"
+    },
+    "keywords": [
+        "calendrier",
+        "electron",
+        "agenda",
+        "planification",
+        "événements",
+        "catégories",
+        "impression"
+    ],
+    "author": "Fabien <contact@example.com>",
+    "license": "MIT",
+    "dependencies": {
+        "dayjs": "^1.11.13",
+        "electron-log": "^4.4.8",
+        "electron-store": "^8.2.0",
+        "electron-updater": "^5.3.0",
+        "ical-generator": "^3.6.1",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "electron": "^24.8.8",
+        "electron-builder": "^23.6.0",
+        "nodemon": "^2.0.22"
+    },
+    "build": {
+        "appId": "com.supercalendrier.app",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "app/**/*",
+            "main.js",
+            "preload.js",
+            "node_modules/**/*",
+            "package.json"
+        ],
+        "win": {
+            "target": [
+                "nsis"
+            ],
+            "icon": "build/icons/icon.ico"
+        },
+        "mac": {
+            "target": [
+                "dmg"
+            ],
+            "icon": "build/icons/icon.icns"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb"
+            ],
+            "icon": "build/icons/icon.png",
+            "category": "Office"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true
+        },
+        "publish": {
+            "provider": "github",
+            "releaseType": "release"
+        }
+    }
+}
