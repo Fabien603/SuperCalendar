@@ -19,6 +19,7 @@ const store = new Store({
 let mainWindow;
 
 // Création de la fenêtre principale
+// Dans la fonction createWindow() du fichier main.js
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -33,6 +34,9 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     }
   });
+
+  // Passer en plein écran immédiatement lors du lancement
+  mainWindow.setFullScreen(true);
 
   // Masquer la barre de menu
   mainWindow.setMenuBarVisibility(false);
