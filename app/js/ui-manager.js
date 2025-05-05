@@ -15,7 +15,6 @@ export class UIManager {
         this.viewButtons = document.querySelectorAll('.nav-item[data-view]');
         this.todayBtn = document.getElementById('today-btn');
         this.addEventBtn = document.getElementById('add-event-quick-btn');
-        // this.quitAppBtn = document.getElementById('quit-app-btn');
 
         // Modales
         this.settingsModal = document.getElementById('settings-modal');
@@ -72,11 +71,12 @@ export class UIManager {
             });
         }
         // Bouton pour quitter l'application
-        // if (quitAppBtn) {
-        //     quitAppBtn.addEventListener('click', () => {
-        //         this.quitApplication();
-        //     });
-        // }
+        const quitAppBtn = document.getElementById('quit-app-btn');
+        if (quitAppBtn) {
+            quitAppBtn.addEventListener('click', () => {
+                this.quitApplication();
+            });
+        }
 
         // Bouton d'ouverture de la modal des catégories
         if (this.addCategoryBtn) {
