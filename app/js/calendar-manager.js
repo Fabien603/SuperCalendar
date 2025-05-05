@@ -1,32 +1,110 @@
-// Gestionnaire de calendrier pour SuperCalendrier
+/**
+ * @fileoverview Gestionnaire du calendrier pour SuperCalendrier
+ * Responsable du rendu des différentes vues de calendrier et de la navigation
+ * @module CalendarManager
+ */
+
 import { DateUtils } from './utils/date-utils.js';
 
+/**
+ * Classe gestionnaire du calendrier
+ * Gère les différentes vues (annuelle, mensuelle, hebdomadaire, quotidienne) et la navigation
+ */
 export class CalendarManager {
+    /**
+     * Crée une instance du gestionnaire de calendrier
+     */
     constructor() {
-        // Date courante
+        /**
+         * Date courante sélectionnée dans le calendrier
+         * @type {Date}
+         * @private
+         */
         this.currentDate = new Date();
         
-        // Vue courante ('yearly', 'monthly', 'weekly', 'daily')
+        /**
+         * Vue courante ('yearly', 'monthly', 'weekly', 'daily')
+         * @type {string}
+         */
         this.currentView = 'yearly';
         
-        // Référence aux éléments DOM
+        /**
+         * Référence à un timer pour la mise à jour de la ligne de temps actuelle
+         * @type {number|null}
+         * @private
+         */
+        this._currentTimeTimer = null;
+        
+        /**
+         * Dimensions des cellules des différentes vues en pixels
+         * @type {Object}
+         * @private
+         */
+        this._cellDimensions = {
+            hourHeight: 50, // Hauteur d'une heure en pixels dans les vues hebdo/quotidienne
+            dayHeight: 120  // Hauteur d'un jour en pixels dans la vue mensuelle
+        };
+        
+        // Initialiser les références aux éléments DOM
+        this._initDOMReferences();
+        
+        /**
+         * Noms des mois en français
+         * @type {Array<string>}
+         */
+        this.months = [
+            'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+            'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+        ];
+        
+        /**
+         * Noms courts des jours en français
+         * @type {Array<string>}
+         */
+        this.days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+        
+        /**
+         * Noms longs des jours en français
+         * @type {Array<string>}
+         */
+        this.daysLong = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        
+        /**
+         * Premier jour de la semaine (0 = Dimanche, 1 = Lundi)
+         * @type {number}
+         */
+        this.firstDayOfWeek = 1;
+        
+        // Initialiser les écouteurs d'événements
+        this._initEventListeners();
+        
+        // Démarrer le minuteur pour la ligne de temps actuelle
+        this._startCurrentTimeUpdater();
+    }
+    
+    /**
+     * Initialise les références aux éléments DOM utilisés par le gestionnaire
+     * @private
+     */
+    _initDOMReferences() {
+        // Conteneurs principaux des vues
         this.yearlyView = document.getElementById('yearly-view');
         this.monthlyView = document.getElementById('monthly-view');
         this.weeklyView = document.getElementById('weekly-view');
         this.dailyView = document.getElementById('daily-view');
         
-        // Navigation
+        // Éléments d'affichage de la date/période courante
         this.currentYearLabel = document.getElementById('current-year');
         this.currentMonthLabel = document.getElementById('current-month');
         this.currentYearMonthlyLabel = document.getElementById('current-year-monthly');
         this.currentWeekLabel = document.getElementById('current-week');
         this.currentDayLabel = document.getElementById('current-day');
         
-        // Conteneurs pour les vues
-        this.calendarContainer = document.getElementById('calendar');
-        this.monthCalendarContainer = document.getElementById('month-calendar');
-        this.weekCalendarContainer = document.getElementById('week-calendar');
-        this.dayScheduleContainer = document.getElementById('day-schedule');
+        // Conteneurs pour les différentes vues du calendrier
+        this.calendarContainer = document.getElementById('calendar'); // Vue annuelle
+        this.monthCalendarContainer = document.getElementById('month-calendar'); // Vue mensuelle
+        this.weekCalendarContainer = document.getElementById('week-calendar'); // Vue hebdomadaire
+        this.dayScheduleContainer = document.getElementById('day-schedule'); // Vue quotidienne
         
         // Boutons de navigation
         this.prevYearBtn = document.getElementById('prev-year');
@@ -37,24 +115,13 @@ export class CalendarManager {
         this.nextWeekBtn = document.getElementById('next-week');
         this.prevDayBtn = document.getElementById('prev-day');
         this.nextDayBtn = document.getElementById('next-day');
-        
-        // Liste des mois et jours
-        this.months = [
-            'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-            'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-        ];
-        
-        this.days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-        this.daysLong = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-        
-        // Premier jour de la semaine (0 = Dimanche, 1 = Lundi) - Par défaut Lundi
-        this.firstDayOfWeek = 1;
-        
-        // Initialiser les écouteurs d'événements
-        this.initEventListeners();
     }
     
-    initEventListeners() {
+    /**
+     * Initialise les écouteurs d'événements pour la navigation
+     * @private
+     */
+    _initEventListeners() {
         // Navigation annuelle
         if (this.prevYearBtn && this.nextYearBtn) {
             this.prevYearBtn.addEventListener('click', () => this.changeYear(-1));
@@ -78,124 +145,318 @@ export class CalendarManager {
             this.prevDayBtn.addEventListener('click', () => this.changeDay(-1));
             this.nextDayBtn.addEventListener('click', () => this.changeDay(1));
         }
+        
+        // Écouteur pour les changements de taille de fenêtre
+        window.addEventListener('resize', this._handleWindowResize.bind(this));
+        
+        // Écouteur pour les changements de fuseau horaire
+        // Important pour mettre à jour la ligne de temps actuelle
+        window.addEventListener('timeupdate', this._updateCurrentTimeLine.bind(this));
     }
     
-    // Méthodes pour changer la date
+    /**
+     * Gère le redimensionnement de la fenêtre
+     * @private
+     */
+    _handleWindowResize() {
+        // Recalculer les dimensions si nécessaire
+        this._recalculateCellDimensions();
+        
+        // Mettre à jour la vue actuelle
+        this.renderCurrentView();
+        
+        // Mettre à jour la position de la ligne de temps actuelle
+        this._updateCurrentTimeLine();
+    }
+    
+    /**
+     * Recalcule les dimensions des cellules en fonction de la taille actuelle de la fenêtre
+     * @private
+     */
+    _recalculateCellDimensions() {
+        // Récupérer une cellule d'heure pour les vues hebdo/quotidienne
+        let hourCell;
+        if (this.currentView === 'weekly' && this.weekCalendarContainer) {
+            hourCell = this.weekCalendarContainer.querySelector('.week-time');
+        } else if (this.currentView === 'daily' && this.dayScheduleContainer) {
+            hourCell = this.dayScheduleContainer.querySelector('.day-hour');
+        }
+        
+        // Mettre à jour la hauteur des cellules d'heure
+        if (hourCell) {
+            this._cellDimensions.hourHeight = hourCell.offsetHeight;
+        }
+        
+        // Récupérer une cellule de jour pour la vue mensuelle
+        let dayCell;
+        if (this.currentView === 'monthly' && this.monthCalendarContainer) {
+            dayCell = this.monthCalendarContainer.querySelector('.month-day');
+        }
+        
+        // Mettre à jour la hauteur des cellules de jour
+        if (dayCell) {
+            this._cellDimensions.dayHeight = dayCell.offsetHeight;
+        }
+    }
+    
+    /**
+     * Démarre un minuteur pour mettre à jour la ligne de temps actuelle
+     * @private
+     */
+    _startCurrentTimeUpdater() {
+        // Nettoyer tout minuteur existant
+        if (this._currentTimeTimer) {
+            clearInterval(this._currentTimeTimer);
+        }
+        
+        // Mettre à jour immédiatement
+        this._updateCurrentTimeLine();
+        
+        // Puis mettre à jour toutes les minutes
+        this._currentTimeTimer = setInterval(() => {
+            this._updateCurrentTimeLine();
+        }, 60000); // 60 secondes = 1 minute
+    }
+    
+    /**
+     * Met à jour la ligne de temps actuelle dans les vues hebdomadaire et quotidienne
+     * @private
+     */
+    _updateCurrentTimeLine() {
+        // Supprimer les lignes de temps actuelles existantes
+        const currentTimeLines = document.querySelectorAll('.current-time-line');
+        currentTimeLines.forEach(line => line.remove());
+        
+        // Ajouter les nouvelles lignes de temps si nécessaire
+        if (this.currentView === 'weekly') {
+            this._addCurrentTimeLineToWeeklyView();
+        } else if (this.currentView === 'daily') {
+            this._addCurrentTimeLineToDailyView();
+        }
+    }
+    
+    /**
+     * Arrête le minuteur de mise à jour de la ligne de temps actuelle
+     * @private
+     */
+    _stopCurrentTimeUpdater() {
+        if (this._currentTimeTimer) {
+            clearInterval(this._currentTimeTimer);
+            this._currentTimeTimer = null;
+        }
+    }
+    
+    /**
+     * Change l'année courante
+     * @param {number} increment - Nombre d'années à ajouter (positif) ou soustraire (négatif)
+     */
     changeYear(increment) {
-        this.currentDate.setFullYear(this.currentDate.getFullYear() + increment);
+        // Créer une copie de la date actuelle pour éviter les références partagées
+        const newDate = new Date(this.currentDate);
+        newDate.setFullYear(newDate.getFullYear() + increment);
+        this.currentDate = newDate;
+        
+        // Mettre à jour la vue
         this.renderCurrentView();
         
         // Déclencher l'événement pour mettre à jour les événements
-        window.dispatchEvent(new CustomEvent('calendar:dateChanged', {
-            detail: { date: new Date(this.currentDate) }
-        }));
+        this._triggerDateChangedEvent();
     }
     
+    /**
+     * Change le mois courant
+     * @param {number} increment - Nombre de mois à ajouter (positif) ou soustraire (négatif)
+     */
     changeMonth(increment) {
-        this.currentDate.setMonth(this.currentDate.getMonth() + increment);
+        // Créer une copie de la date actuelle pour éviter les références partagées
+        const newDate = new Date(this.currentDate);
+        newDate.setMonth(newDate.getMonth() + increment);
+        this.currentDate = newDate;
+        
+        // Mettre à jour la vue
         this.renderCurrentView();
         
         // Déclencher l'événement pour mettre à jour les événements
-        window.dispatchEvent(new CustomEvent('calendar:dateChanged', {
-            detail: { date: new Date(this.currentDate) }
-        }));
+        this._triggerDateChangedEvent();
     }
     
+    /**
+     * Change la semaine courante
+     * @param {number} increment - Nombre de semaines à ajouter (positif) ou soustraire (négatif)
+     */
     changeWeek(increment) {
-        this.currentDate.setDate(this.currentDate.getDate() + (increment * 7));
+        // Créer une copie de la date actuelle pour éviter les références partagées
+        const newDate = new Date(this.currentDate);
+        newDate.setDate(newDate.getDate() + (increment * 7));
+        this.currentDate = newDate;
+        
+        // Mettre à jour la vue
         this.renderCurrentView();
         
         // Déclencher l'événement pour mettre à jour les événements
-        window.dispatchEvent(new CustomEvent('calendar:dateChanged', {
-            detail: { date: new Date(this.currentDate) }
-        }));
+        this._triggerDateChangedEvent();
     }
     
+    /**
+     * Change le jour courant
+     * @param {number} increment - Nombre de jours à ajouter (positif) ou soustraire (négatif)
+     */
     changeDay(increment) {
-        this.currentDate.setDate(this.currentDate.getDate() + increment);
+        // Créer une copie de la date actuelle pour éviter les références partagées
+        const newDate = new Date(this.currentDate);
+        newDate.setDate(newDate.getDate() + increment);
+        this.currentDate = newDate;
+        
+        // Mettre à jour la vue
         this.renderCurrentView();
         
         // Déclencher l'événement pour mettre à jour les événements
-        window.dispatchEvent(new CustomEvent('calendar:dateChanged', {
-            detail: { date: new Date(this.currentDate) }
-        }));
+        this._triggerDateChangedEvent();
     }
     
+    /**
+     * Navigue vers la date actuelle
+     */
     goToToday() {
+        // Mettre à jour la date courante
         this.currentDate = new Date();
+        
+        // Mettre à jour la vue
         this.renderCurrentView();
         
         // Déclencher l'événement pour mettre à jour les événements
-        window.dispatchEvent(new CustomEvent('calendar:dateChanged', {
-            detail: { date: new Date(this.currentDate) }
-        }));
+        this._triggerDateChangedEvent();
         
-        // Notification de changement
+        // Afficher une notification
+        this._showNotification("Calendrier positionné à aujourd'hui");
+    }
+    
+    /**
+     * Affiche une notification
+     * @param {string} message - Message à afficher
+     * @param {boolean} [isError=false] - Indique si c'est une erreur
+     * @private
+     */
+    _showNotification(message, isError = false) {
         window.dispatchEvent(new CustomEvent('notification:show', {
             detail: { 
-                message: "Calendrier positionné à aujourd'hui", 
-                isError: false 
+                message: message, 
+                isError: isError 
             }
         }));
     }
     
-    // Méthode pour changer la vue actuelle
+    /**
+     * Déclenche un événement pour signaler un changement de date
+     * @private
+     */
+    _triggerDateChangedEvent() {
+        window.dispatchEvent(new CustomEvent('calendar:dateChanged', {
+            detail: { date: new Date(this.currentDate) }
+        }));
+    }
+    
+    /**
+     * Déclenche un événement pour signaler un changement de vue
+     * @private
+     */
+    _triggerViewChangedEvent() {
+        window.dispatchEvent(new CustomEvent('calendar:viewChanged', {
+            detail: { view: this.currentView }
+        }));
+    }
+    
+    /**
+     * Change la vue courante
+     * @param {string} view - Nouvelle vue ('yearly', 'monthly', 'weekly', 'daily')
+     */
     setView(view) {
+        // Vérifier que la vue est valide
         if (!['yearly', 'monthly', 'weekly', 'daily'].includes(view)) {
             console.error(`Vue non reconnue: ${view}`);
             return;
         }
         
+        // Changer la vue
         this.currentView = view;
         
         // Cacher toutes les vues
-        if (this.yearlyView) this.yearlyView.classList.remove('active');
-        if (this.monthlyView) this.monthlyView.classList.remove('active');
-        if (this.weeklyView) this.weeklyView.classList.remove('active');
-        if (this.dailyView) this.dailyView.classList.remove('active');
+        this._hideAllViews();
         
         // Afficher la vue sélectionnée
-        const viewTitle = document.getElementById('current-view-title');
+        this._showSelectedView();
         
-        switch (view) {
-            case 'yearly':
-                if (this.yearlyView) this.yearlyView.classList.add('active');
-                if (viewTitle) viewTitle.textContent = 'Vue annuelle';
-                break;
-            case 'monthly':
-                if (this.monthlyView) this.monthlyView.classList.add('active');
-                if (viewTitle) viewTitle.textContent = 'Vue mensuelle';
-                break;
-            case 'weekly':
-                if (this.weeklyView) this.weeklyView.classList.add('active');
-                if (viewTitle) viewTitle.textContent = 'Vue hebdomadaire';
-                break;
-            case 'daily':
-                if (this.dailyView) this.dailyView.classList.add('active');
-                if (viewTitle) viewTitle.textContent = 'Vue quotidienne';
-                break;
-        }
+        // Mettre à jour le titre de la vue
+        this._updateViewTitle();
         
         // Rendre la vue actuelle
         this.renderCurrentView();
         
-        // Mettre à jour les boutons de navigation
-        document.querySelectorAll('.nav-item[data-view]').forEach(button => {
-            button.classList.remove('active');
-            if (button.dataset.view === view) {
-                button.classList.add('active');
-            }
-        });
-        
         // Déclencher un événement pour mettre à jour les événements après le rendu de la vue
         setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('calendar:viewChanged', {
-                detail: { view: this.currentView }
-            }));
+            this._triggerViewChangedEvent();
         }, 100);
     }
     
-    // Rendu de la vue actuelle
+    /**
+     * Cache toutes les vues
+     * @private
+     */
+    _hideAllViews() {
+        if (this.yearlyView) this.yearlyView.classList.remove('active');
+        if (this.monthlyView) this.monthlyView.classList.remove('active');
+        if (this.weeklyView) this.weeklyView.classList.remove('active');
+        if (this.dailyView) this.dailyView.classList.remove('active');
+    }
+    
+    /**
+     * Affiche la vue sélectionnée
+     * @private
+     */
+    _showSelectedView() {
+        switch (this.currentView) {
+            case 'yearly':
+                if (this.yearlyView) this.yearlyView.classList.add('active');
+                break;
+            case 'monthly':
+                if (this.monthlyView) this.monthlyView.classList.add('active');
+                break;
+            case 'weekly':
+                if (this.weeklyView) this.weeklyView.classList.add('active');
+                break;
+            case 'daily':
+                if (this.dailyView) this.dailyView.classList.add('active');
+                break;
+        }
+    }
+    
+    /**
+     * Met à jour le titre de la vue
+     * @private
+     */
+    _updateViewTitle() {
+        const viewTitle = document.getElementById('current-view-title');
+        if (!viewTitle) return;
+        
+        switch (this.currentView) {
+            case 'yearly':
+                viewTitle.textContent = 'Vue annuelle';
+                break;
+            case 'monthly':
+                viewTitle.textContent = 'Vue mensuelle';
+                break;
+            case 'weekly':
+                viewTitle.textContent = 'Vue hebdomadaire';
+                break;
+            case 'daily':
+                viewTitle.textContent = 'Vue quotidienne';
+                break;
+        }
+    }
+    
+    /**
+     * Rend la vue courante
+     */
     renderCurrentView() {
         switch (this.currentView) {
             case 'yearly':
@@ -211,9 +472,14 @@ export class CalendarManager {
                 this.renderDailyView();
                 break;
         }
+        
+        // Mettre à jour la ligne de temps actuelle après avoir rendu la vue
+        this._updateCurrentTimeLine();
     }
     
-    // Render de la vue annuelle
+    /**
+     * Rend la vue annuelle
+     */
     renderYearlyView() {
         if (!this.calendarContainer) {
             console.error("Conteneur de calendrier non trouvé");
@@ -230,13 +496,19 @@ export class CalendarManager {
         
         // Générer les mois
         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-            const monthElement = this.createMonthCard(year, monthIndex);
+            const monthElement = this._createMonthCard(year, monthIndex);
             this.calendarContainer.appendChild(monthElement);
         }
     }
     
-    // Créer un élément de carte de mois pour la vue annuelle
-    createMonthCard(year, monthIndex) {
+    /**
+     * Crée une carte de mois pour la vue annuelle
+     * @param {number} year - Année
+     * @param {number} monthIndex - Index du mois (0-11)
+     * @returns {HTMLElement} - Élément DOM représentant le mois
+     * @private
+     */
+    _createMonthCard(year, monthIndex) {
         const monthElement = document.createElement('div');
         monthElement.className = 'month-card';
         
@@ -317,7 +589,9 @@ export class CalendarManager {
         return monthElement;
     }
     
-    // Render de la vue mensuelle
+    /**
+     * Rend la vue mensuelle
+     */
     renderMonthlyView() {
         if (!this.monthCalendarContainer) {
             console.error("Conteneur de calendrier mensuel non trouvé");
@@ -338,20 +612,23 @@ export class CalendarManager {
         // Vider le conteneur
         this.monthCalendarContainer.innerHTML = '';
         
+        // Créer l'en-tête des jours de la semaine
+        const weekdaysRow = document.createElement('div');
+        weekdaysRow.className = 'weekdays';
+        
+        // Ajouter les jours selon firstDayOfWeek
+        for (let i = 0; i < 7; i++) {
+            const dayIndex = (this.firstDayOfWeek + i) % 7;
+            const dayElement = document.createElement('div');
+            dayElement.textContent = this.daysLong[dayIndex];
+            weekdaysRow.appendChild(dayElement);
+        }
+        
+        this.monthCalendarContainer.appendChild(weekdaysRow);
+        
         // Créer la grille du mois
         const monthGrid = document.createElement('div');
         monthGrid.className = 'month-grid';
-        
-        // Ajouter les jours de la semaine
-        for (let i = 0; i < 7; i++) {
-            const dayIndex = (this.firstDayOfWeek + i) % 7;
-            const dayName = this.days[dayIndex];
-            
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'week-header-day';
-            dayHeader.textContent = dayName;
-            monthGrid.appendChild(dayHeader);
-        }
         
         // Déterminer le premier jour du mois
         const firstDay = new Date(year, month, 1).getDay();
@@ -370,7 +647,6 @@ export class CalendarManager {
             currentDate.setDate(startDate.getDate() + i);
             
             const currentMonth = currentDate.getMonth();
-            const currentYear = currentDate.getFullYear();
             const currentDay = currentDate.getDate();
             
             const dayElement = document.createElement('div');
@@ -417,7 +693,9 @@ export class CalendarManager {
         this.monthCalendarContainer.appendChild(monthGrid);
     }
     
-    // Render de la vue hebdomadaire
+    /**
+     * Rend la vue hebdomadaire
+     */
     renderWeeklyView() {
         if (!this.weekCalendarContainer) {
             console.error("Conteneur de calendrier hebdomadaire non trouvé");
@@ -425,19 +703,24 @@ export class CalendarManager {
         }
         
         // Déterminer le début de la semaine
-        const currentDate = new Date(this.currentDate);
-        const currentDay = currentDate.getDay();
-        const diff = currentDate.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // Ajuster pour que la semaine commence le lundi
-        
-        const startOfWeek = new Date(currentDate);
-        startOfWeek.setDate(diff);
-        
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        const startOfWeek = DateUtils.getStartOfWeek(this.currentDate, this.firstDayOfWeek);
+        const endOfWeek = DateUtils.getEndOfWeek(this.currentDate, this.firstDayOfWeek);
         
         // Mettre à jour le libellé de la semaine
         if (this.currentWeekLabel) {
-            this.currentWeekLabel.textContent = `Semaine du ${startOfWeek.getDate()} ${this.months[startOfWeek.getMonth()]} au ${endOfWeek.getDate()} ${this.months[endOfWeek.getMonth()]} ${endOfWeek.getFullYear()}`;
+            // Format: "Semaine du 1 janvier au 7 janvier 2025"
+            const startMonth = this.months[startOfWeek.getMonth()];
+            const endMonth = this.months[endOfWeek.getMonth()];
+            const startDay = startOfWeek.getDate();
+            const endDay = endOfWeek.getDate();
+            const year = endOfWeek.getFullYear();
+            
+            // Si même mois
+            if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+                this.currentWeekLabel.textContent = `Semaine du ${startDay} au ${endDay} ${startMonth} ${year}`;
+            } else {
+                this.currentWeekLabel.textContent = `Semaine du ${startDay} ${startMonth} au ${endDay} ${endMonth} ${year}`;
+            }
         }
         
         // Vider le conteneur
@@ -474,10 +757,29 @@ export class CalendarManager {
             
             dayCell.appendChild(dayName);
             dayCell.appendChild(dayNumber);
+            dayCell.dataset.date = DateUtils.formatDate(dayDate);
+            
+            // Ajouter un événement de clic pour naviguer vers la vue quotidienne
+            dayCell.addEventListener('click', () => {
+                this.currentDate = dayDate;
+                this.setView('daily');
+            });
+            
             weekHeader.appendChild(dayCell);
         }
         
         this.weekCalendarContainer.appendChild(weekHeader);
+        
+        // Créer le conteneur pour les événements toute la journée
+        const allDayContainer = document.createElement('div');
+        allDayContainer.className = 'all-day-events-container';
+        allDayContainer.innerHTML = `
+            <div style="display: grid; grid-template-columns: 60px repeat(7, 1fr);">
+                <div>Toute la journée</div>
+                ${Array(7).fill(0).map(() => '<div class="all-day-events-day"></div>').join('')}
+            </div>
+        `;
+        this.weekCalendarContainer.appendChild(allDayContainer);
         
         // Créer la grille des heures
         const weekGrid = document.createElement('div');
@@ -532,11 +834,82 @@ export class CalendarManager {
         
         this.weekCalendarContainer.appendChild(weekGrid);
         
+        // Recalculer les dimensions des cellules
+        this._recalculateCellDimensions();
+        
         // Ajouter une ligne pour indiquer l'heure actuelle si c'est dans la semaine affichée
-        this.addCurrentTimeLine(weekGrid, startOfWeek, endOfWeek);
+        this._addCurrentTimeLineToWeeklyView();
     }
     
-    // Render de la vue quotidienne
+    /**
+     * Ajoute une ligne indiquant l'heure actuelle dans la vue hebdomadaire
+     * @private
+     */
+    _addCurrentTimeLineToWeeklyView() {
+        if (!this.weekCalendarContainer) return;
+        
+        const now = new Date();
+        
+        // Déterminer le début de la semaine
+        const startOfWeek = DateUtils.getStartOfWeek(this.currentDate, this.firstDayOfWeek);
+        const endOfWeek = DateUtils.getEndOfWeek(this.currentDate, this.firstDayOfWeek);
+        
+        // Vérifier si la date actuelle est dans la semaine affichée
+        if (now >= startOfWeek && now <= endOfWeek) {
+            // Calculer le jour de la semaine (0-6)
+            const dayOfWeek = now.getDay();
+            const adjustedDayOfWeek = (dayOfWeek === 0) ? 6 : dayOfWeek - 1; // Ajuster pour commencer par lundi
+            
+            // Calculer l'heure et les minutes pour positionner la ligne
+            const hour = now.getHours();
+            const minutes = now.getMinutes();
+            
+            // Récupérer les dimensions d'une cellule d'heure
+            const hourCells = this.weekCalendarContainer.querySelectorAll('.week-time');
+            if (hourCells.length > 0) {
+                const hourHeight = this._cellDimensions.hourHeight;
+                
+                // Calculer la position verticale
+                const top = hour * hourHeight + (minutes / 60) * hourHeight;
+                
+                // Créer la ligne du temps actuel
+                const currentTimeLine = document.createElement('div');
+                currentTimeLine.className = 'current-time-line';
+                
+                // Positionner la ligne
+                currentTimeLine.style.top = `${top}px`;
+                currentTimeLine.style.left = '60px'; // Tenir compte de la colonne des heures
+                currentTimeLine.style.width = 'calc(100% - 60px)';
+                
+                // Ajouter un marqueur de l'heure actuelle
+                const timeMarker = document.createElement('div');
+                timeMarker.className = 'current-time-marker';
+                timeMarker.textContent = DateUtils.formatTime24h(now);
+                timeMarker.style.position = 'absolute';
+                timeMarker.style.left = '5px';
+                timeMarker.style.top = '-10px';
+                timeMarker.style.fontSize = '10px';
+                timeMarker.style.padding = '2px 5px';
+                timeMarker.style.backgroundColor = 'var(--accent)';
+                timeMarker.style.color = 'white';
+                timeMarker.style.borderRadius = '10px';
+                
+                currentTimeLine.appendChild(timeMarker);
+                
+                // Ajouter la ligne au conteneur des événements
+                const weekGrid = this.weekCalendarContainer.querySelector('.week-grid');
+                if (weekGrid) {
+                    weekGrid.appendChild(currentTimeLine);
+                } else {
+                    this.weekCalendarContainer.appendChild(currentTimeLine);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Rend la vue quotidienne
+     */
     renderDailyView() {
         if (!this.dayScheduleContainer) {
             console.error("Conteneur d'agenda quotidien non trouvé");
@@ -560,11 +933,20 @@ export class CalendarManager {
         dayHeader.textContent = this.currentDayLabel ? this.currentDayLabel.textContent : `${date.getDate()} ${this.months[date.getMonth()]} ${date.getFullYear()}`;
         this.dayScheduleContainer.appendChild(dayHeader);
         
+        // Créer le conteneur pour les événements toute la journée
+        const allDayContainer = document.createElement('div');
+        allDayContainer.className = 'all-day-events-container';
+        allDayContainer.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 5px;">Toute la journée</div>
+            <div class="all-day-events-list"></div>
+        `;
+        this.dayScheduleContainer.appendChild(allDayContainer);
+        
         // Créer la timeline
         const dayTimeline = document.createElement('div');
         dayTimeline.className = 'day-timeline';
         
-        // Créer la colonne des heures et la colonne des événements
+        // Créer les colonnes d'heures et d'événements
         const hoursColumn = document.createElement('div');
         hoursColumn.className = 'day-hours-column';
         
@@ -610,50 +992,22 @@ export class CalendarManager {
         
         this.dayScheduleContainer.appendChild(dayTimeline);
         
-        // Ajouter une ligne pour indiquer l'heure actuelle si c'est aujourd'hui
-        this.addCurrentTimeLineDaily(dayTimeline, date);
-    }
-    
-    // Ajouter une ligne indiquant l'heure actuelle dans la vue hebdomadaire
-    addCurrentTimeLine(container, startOfWeek, endOfWeek) {
-        const now = new Date();
+        // Recalculer les dimensions des cellules
+        this._recalculateCellDimensions();
         
-        // Vérifier si la date actuelle est dans la semaine affichée
-        if (now >= startOfWeek && now <= endOfWeek) {
-            // Calculer le jour de la semaine (0-6)
-            const dayOfWeek = now.getDay();
-            const adjustedDayOfWeek = (dayOfWeek === 0) ? 6 : dayOfWeek - 1; // Ajuster pour commencer par lundi
-            
-            // Calculer l'heure et les minutes pour positionner la ligne
-            const hour = now.getHours();
-            const minutes = now.getMinutes();
-            
-            // Créer la ligne du temps actuel
-            const currentTimeLine = document.createElement('div');
-            currentTimeLine.className = 'current-time-line';
-            
-            // Récupérer les dimensions d'une cellule d'heure
-            const hourCells = container.querySelectorAll('.week-time');
-            if (hourCells.length > 0) {
-                const hourHeight = hourCells[0].offsetHeight;
-                
-                // Calculer la position verticale
-                const top = hour * hourHeight + (minutes / 60) * hourHeight;
-                
-                // Positionner la ligne
-                currentTimeLine.style.top = `${top}px`;
-                currentTimeLine.style.left = '60px'; // Tenir compte de la colonne des heures
-                currentTimeLine.style.width = 'calc(100% - 60px)';
-                
-                // Ajouter la ligne au conteneur
-                container.appendChild(currentTimeLine);
-            }
-        }
+        // Ajouter une ligne pour indiquer l'heure actuelle si c'est aujourd'hui
+        this._addCurrentTimeLineToDailyView();
     }
     
-    // Ajouter une ligne indiquant l'heure actuelle dans la vue quotidienne
-    addCurrentTimeLineDaily(container, date) {
+    /**
+     * Ajoute une ligne indiquant l'heure actuelle dans la vue quotidienne
+     * @private
+     */
+    _addCurrentTimeLineToDailyView() {
+        if (!this.dayScheduleContainer) return;
+        
         const now = new Date();
+        const date = this.currentDate;
         
         // Vérifier si la date affichée est aujourd'hui
         if (DateUtils.isSameDay(now, date)) {
@@ -662,9 +1016,9 @@ export class CalendarManager {
             const minutes = now.getMinutes();
             
             // Récupérer les dimensions d'une cellule d'heure
-            const hourCells = container.querySelectorAll('.day-hour');
+            const hourCells = this.dayScheduleContainer.querySelectorAll('.day-hour');
             if (hourCells.length > 0) {
-                const hourHeight = hourCells[0].offsetHeight;
+                const hourHeight = this._cellDimensions.hourHeight;
                 
                 // Calculer la position verticale
                 const top = hour * hourHeight + (minutes / 60) * hourHeight;
@@ -674,12 +1028,46 @@ export class CalendarManager {
                 currentTimeLine.className = 'current-time-line';
                 currentTimeLine.style.top = `${top}px`;
                 
+                // Ajouter un marqueur de l'heure actuelle
+                const timeMarker = document.createElement('div');
+                timeMarker.className = 'current-time-marker';
+                timeMarker.textContent = DateUtils.formatTime24h(now);
+                timeMarker.style.position = 'absolute';
+                timeMarker.style.left = '5px';
+                timeMarker.style.top = '-10px';
+                timeMarker.style.fontSize = '10px';
+                timeMarker.style.padding = '2px 5px';
+                timeMarker.style.backgroundColor = 'var(--accent)';
+                timeMarker.style.color = 'white';
+                timeMarker.style.borderRadius = '10px';
+                
+                currentTimeLine.appendChild(timeMarker);
+                
                 // Ajouter la ligne à la colonne des événements
-                const eventsColumn = container.querySelector('.day-events-column');
+                const eventsColumn = this.dayScheduleContainer.querySelector('.day-events-column');
                 if (eventsColumn) {
                     eventsColumn.appendChild(currentTimeLine);
+                } else {
+                    // Fallback au conteneur principal
+                    const dayTimeline = this.dayScheduleContainer.querySelector('.day-timeline');
+                    if (dayTimeline) {
+                        dayTimeline.appendChild(currentTimeLine);
+                    }
                 }
             }
         }
+    }
+    
+    /**
+     * Nettoie les ressources utilisées par le gestionnaire
+     * Méthode appelée lors de la fermeture de l'application
+     */
+    cleanup() {
+        // Arrêter le minuteur de mise à jour de la ligne de temps actuelle
+        this._stopCurrentTimeUpdater();
+        
+        // Supprimer les écouteurs d'événements (si nécessaire pour éviter les fuites de mémoire)
+        window.removeEventListener('resize', this._handleWindowResize);
+        window.removeEventListener('timeupdate', this._updateCurrentTimeLine);
     }
 }
