@@ -15,7 +15,7 @@ export class UIManager {
         this.viewButtons = document.querySelectorAll('.nav-item[data-view]');
         this.todayBtn = document.getElementById('today-btn');
         this.addEventBtn = document.getElementById('add-event-quick-btn');
-        this.quitAppBtn = document.getElementById('quit-app-btn');
+        // this.quitAppBtn = document.getElementById('quit-app-btn');
 
         // Modales
         this.settingsModal = document.getElementById('settings-modal');
@@ -224,29 +224,30 @@ export class UIManager {
         });
     }
     
-    quitApplication() {
-        // Demander confirmation avant de quitter
-        const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
-        if (confirmQuit) {
-            // Sauvegarder les données si nécessaire
-            this.categoryManager.dataManager.saveData()
-                .then(() => {
-                    // Quitter l'application via l'API Electron
-                    if (window.electronAPI) {
-                        window.electronAPI.quitApp();
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la sauvegarde avant fermeture:', error);
-                    // Quitter malgré l'erreur
-                    if (window.electronAPI) {
-                        window.electronAPI.quitApp();
-                    }
-                });
-        }
-    }
+    // quitApplication() {
+    //     // Demander confirmation avant de quitter
+    //     const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
+    //     if (confirmQuit) {
+    //         // Sauvegarder les données si nécessaire
+    //         this.categoryManager.dataManager.saveData()
+    //             .then(() => {
+    //                 // Quitter l'application via l'API Electron
+    //                 if (window.electronAPI) {
+    //                     window.electronAPI.quitApp();
+    //                 }
+    //             })
+    //             .catch(error => {
+    //                 console.error('Erreur lors de la sauvegarde avant fermeture:', error);
+    //                 // Quitter malgré l'erreur
+    //                 if (window.electronAPI) {
+    //                     window.electronAPI.quitApp();
+    //                 }
+    //             });
+    //     }
+    // }
 
     // Mettre à jour l'interface
+    
     updateUI() {
         // Mettre à jour les catégories
         this.updateCategories();
