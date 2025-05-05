@@ -304,10 +304,13 @@ textarea.form-control {
     display: flex;
     align-items: center;
     cursor: pointer;
+    margin-bottom: 8px;
 }
 
 .checkbox-label input[type="checkbox"] {
     margin-right: 8px;
+    width: 18px;
+    height: 18px;
 }
 
 /* Theme switcher */
@@ -684,10 +687,13 @@ input:checked + .slider:before {
     font-weight: bold;
 }
 
+/* Grid layouts for week and day views */
 .week-grid {
     display: grid;
     grid-template-columns: 60px repeat(7, 1fr);
+    position: relative;
     height: auto;
+    border-top: 1px solid var(--border);
 }
 
 .week-time {
@@ -696,47 +702,20 @@ input:checked + .slider:before {
     color: var(--text-light);
     font-size: 12px;
     position: relative;
-    height: 25px; /* Hauteur réduite pour afficher 24h sans défilement */
-}
-
-.week-time::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 1px;
-    background-color: var(--border);
+    height: 50px; /* Hauteur fixe pour chaque heure */
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
 .week-day-column {
     position: relative;
     border-right: 1px solid var(--border);
-    height: 25px; /* Hauteur correspondante aux heures */
+    border-bottom: 1px solid var(--border);
+    height: 50px; /* Même hauteur que week-time */
 }
 
 .week-day-column.today {
     background-color: rgba(var(--primary-rgb), 0.05);
-}
-
-.current-time-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: var(--accent);
-    z-index: 2;
-}
-
-.current-time-line::before {
-    content: '';
-    position: absolute;
-    left: -5px;
-    top: -4px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--accent);
 }
 
 /* Daily view */
@@ -761,6 +740,8 @@ input:checked + .slider:before {
 .day-timeline {
     display: grid;
     grid-template-columns: 60px 1fr;
+    position: relative;
+    border-top: 1px solid var(--border);
 }
 
 .day-hour {
@@ -769,25 +750,43 @@ input:checked + .slider:before {
     color: var(--text-light);
     font-size: 12px;
     position: relative;
-    height: 25px; /* Hauteur réduite pour afficher 24h sans défilement */
+    height: 50px; /* Hauteur fixe pour chaque heure */
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
-.day-hour::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 1px;
-    background-color: var(--border);
+.day-hour-line {
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    height: 50px; /* Même hauteur que day-hour */
 }
 
 .day-events-column {
     position: relative;
     padding: 0 15px;
-    min-height: 25px; /* Hauteur correspondante aux heures */
+    min-height: 25px;
 }
 
+/* Current time line */
+.current-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--accent);
+    z-index: 20;
+}
+
+.current-time-line::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--accent);
+}
 
 /* Events section */
 .event-section {
@@ -1087,7 +1086,7 @@ input:checked + .slider:before {
     background-color: var(--danger);
 }
 
-/* === Styles pour les événements "toute la journée" === */
+/* Events styles */
 .all-day-events-container {
     background-color: rgba(var(--primary-rgb), 0.05);
     border-bottom: 1px solid var(--border);
@@ -1134,79 +1133,7 @@ input:checked + .slider:before {
     box-shadow: 0 2px 5px var(--shadow);
 }
 
-/* === Amélioration des grilles hebdomadaire et quotidienne === */
-.week-grid {
-    display: grid;
-    grid-template-columns: 60px repeat(7, 1fr);
-    position: relative;
-    height: auto;
-    border-top: 1px solid var(--border);
-}
-
-.week-time {
-    text-align: right;
-    padding-right: 10px;
-    color: var(--text-light);
-    font-size: 12px;
-    position: relative;
-    height: 50px; /* Hauteur fixe pour chaque heure */
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-}
-
-.week-day-column {
-    position: relative;
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    height: 50px; /* Même hauteur que week-time */
-}
-
-.day-timeline {
-    display: grid;
-    grid-template-columns: 60px 1fr;
-    position: relative;
-    border-top: 1px solid var(--border);
-}
-
-.day-hour {
-    text-align: right;
-    padding-right: 10px;
-    color: var(--text-light);
-    font-size: 12px;
-    position: relative;
-    height: 50px; /* Hauteur fixe pour chaque heure */
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-}
-
-.day-hour-line {
-    position: relative;
-    border-bottom: 1px solid var(--border);
-    height: 50px; /* Même hauteur que day-hour */
-}
-
-/* === Ligne de temps actuel === */
-.current-time-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: var(--accent);
-    z-index: 20;
-}
-
-.current-time-line::before {
-    content: '';
-    position: absolute;
-    left: -5px;
-    top: -4px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--accent);
-}
-
-/* === Styles pour les événements de la semaine === */
+/* Event displays */
 .week-event {
     position: absolute;
     left: 1px;
@@ -1240,7 +1167,6 @@ input:checked + .slider:before {
     color: var(--text-light);
 }
 
-/** === Styles pour les événements de la journée === */
 .day-event {
     position: absolute;
     left: 15px;
@@ -1286,38 +1212,41 @@ input:checked + .slider:before {
     margin-right: 3px;
 }
 
-.day-event:hover {
-    background-color: rgba(var(--primary-rgb), 0.2);
-    transform: scale(1.01);
-    box-shadow: 0 2px 8px var(--shadow);
-    z-index: 10;
+/* Utility styles */
+.hint-text {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 5px;
+    font-style: italic;
 }
 
+/* Style pour mettre en évidence l'option de désactivation temporaire */
+#disable-notifications-temp:checked + label {
+    color: var(--accent);
+    font-weight: bold;
+}
 
+/* Animation pour la case à cocher */
+@keyframes checkmark {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
 
+.checkbox-label input[type="checkbox"]:checked {
+    animation: checkmark 0.2s ease-in-out;
+}
 
+/* Categories nav styles */
+#categories-nav .nav-item.active {
+    background-color: var(--primary-light);
+    color: white;
+    font-weight: bold;
+}
 
-/* === Responsive adjustments === */
-@media (max-width: 768px) {
-    .week-grid, .day-timeline {
-        font-size: 10px;
-    }
-    
-    .week-time, .day-hour, .week-day-column, .day-hour-line {
-        height: 40px; /* Réduire la hauteur sur les petits écrans */
-    }
-    
-    .all-day-events-container {
-        padding: 5px;
-    }
-    
-    .week-event, .day-event {
-        font-size: 10px;
-    }
-    
-    .week-event-time {
-        font-size: 8px;
-    }
+#categories-nav .nav-item:hover {
+    background-color: rgba(var(--primary-rgb), 0.1);
+    cursor: pointer;
 }
 
 /* Responsive styles */
@@ -1368,6 +1297,26 @@ input:checked + .slider:before {
     
     .week-grid {
         grid-template-columns: 50px repeat(7, 1fr);
+    }
+    
+    .week-grid, .day-timeline {
+        font-size: 10px;
+    }
+    
+    .week-time, .day-hour, .week-day-column, .day-hour-line {
+        height: 40px; /* Réduire la hauteur sur les petits écrans */
+    }
+    
+    .all-day-events-container {
+        padding: 5px;
+    }
+    
+    .week-event, .day-event {
+        font-size: 10px;
+    }
+    
+    .week-event-time {
+        font-size: 8px;
     }
 }
 
@@ -1436,8 +1385,7 @@ input:checked + .slider:before {
     }
 }
 
-/* Personnalisation des scroll-bars */
-/* Pour les navigateurs basés sur WebKit (Chrome, Safari, Edge moderne) */
+/* Scrollbar styles */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -1458,13 +1406,13 @@ input:checked + .slider:before {
     background-color: var(--primary);
 }
 
-/* Pour la compatibilité avec Firefox */
+/* Firefox scrollbar */
 * {
     scrollbar-width: thin;
     scrollbar-color: var(--primary-light) var(--background);
 }
 
-/* Pour le mode sombre */
+/* Dark theme scrollbar */
 .dark-theme ::-webkit-scrollbar-track {
     background-color: rgba(30, 30, 30, 0.5);
 }
@@ -1479,56 +1427,4 @@ input:checked + .slider:before {
 
 .dark-theme * {
     scrollbar-color: var(--primary-dark) rgba(30, 30, 30, 0.5);
-}
-
-/* Style pour l'élément de catégorie actif */
-#categories-nav .nav-item.active {
-    background-color: var(--primary-light);
-    color: white;
-    font-weight: bold;
-}
-
-/* Effet de survol pour les éléments de catégorie */
-#categories-nav .nav-item:hover {
-    background-color: rgba(var(--primary-rgb), 0.1);
-    cursor: pointer;
-}
-
-
-/* Style pour la case à cocher de désactivation des notifications */
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    cursor: pointer;
-}
-
-.checkbox-label input[type="checkbox"] {
-    margin-right: 8px;
-    width: 18px;
-    height: 18px;
-}
-
-.hint-text {
-    font-size: 12px;
-    color: var(--text-light);
-    margin-top: 5px;
-    font-style: italic;
-}
-
-/* Style pour mettre en évidence l'option de désactivation temporaire */
-#disable-notifications-temp:checked + label {
-    color: var(--accent);
-    font-weight: bold;
-}
-
-/* Animation pour la case à cocher */
-@keyframes checkmark {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-.checkbox-label input[type="checkbox"]:checked {
-    animation: checkmark 0.2s ease-in-out;
 }
