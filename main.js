@@ -315,7 +315,8 @@ ipcMain.handle('save-preferences', (event, data) => {
 });
 
 ipcMain.handle('quit-app', () => {
-  app.quit();
+  console.log('Quitting application...');
+  app.exit(0); // Forcer la fermeture avec le code 0 (succès)
   return true;
 });
 
