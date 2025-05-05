@@ -190,8 +190,8 @@ export class UIManager {
             this.categoryManager.dataManager.saveData()
                 .then(() => {
                     // Quitter l'application via l'API Electron
-                    confirmQuit = confirm('Tentative de fermeture avec app.quit()');
                     if (window.electronAPI) {
+                        confirmQuit = confirm('Tentative de fermeture avec app.quit()');
                         window.electronAPI.quitApp();
                     }
                 })
