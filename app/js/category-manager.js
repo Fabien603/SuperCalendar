@@ -1,90 +1,145 @@
 /**
- * Gestionnaire des catégories d'événements
- * Responsable de la gestion et du rendu des catégories dans l'interface utilisateur
+ * @fileoverview Gestionnaire des catégories d'événements
+ * Responsable de la gestion du cycle de vie des catégories et de leur rendu dans l'interface
+ * @module CategoryManager
+ */
+
+/**
+ * Classe gestionnaire des catégories d'événements
+ * Gère la création, modification, suppression et l'affichage des catégories dans l'interface
  */
 export class CategoryManager {
+    /**
+     * Crée une instance du gestionnaire de catégories
+     * @param {DataManager} dataManager - Instance du gestionnaire de données
+     */
     constructor(dataManager) {
-        // Référence au gestionnaire de données
+        /**
+         * Référence au gestionnaire de données
+         * @type {DataManager}
+         * @private
+         */
         this.dataManager = dataManager;
         
-        // Éléments DOM
+        /**
+         * Éléments DOM pour la navigation des catégories
+         * @type {HTMLElement}
+         * @private
+         */
         this.categoriesNav = document.getElementById('categories-nav');
+        
+        /**
+         * Éléments DOM pour la liste des catégories dans la modal
+         * @type {HTMLElement}
+         * @private
+         */
         this.categoryList = document.getElementById('category-list');
+        
+        /**
+         * Éléments DOM pour le sélecteur de catégories dans le formulaire d'événement
+         * @type {HTMLSelectElement}
+         * @private
+         */
         this.categorySelect = document.getElementById('event-category');
         
-        // Modal de gestion des catégories
+        /**
+         * Modal de gestion des catégories
+         * @type {HTMLElement}
+         * @private
+         */
         this.categoriesModal = document.getElementById('categories-modal');
+        
+        /**
+         * Bouton d'ajout de catégorie
+         * @type {HTMLElement}
+         * @private
+         */
         this.addCategoryBtn = document.getElementById('add-category');
+        
+        /**
+         * Bouton de mise à jour de catégorie
+         * @type {HTMLElement}
+         * @private
+         */
         this.updateCategoryBtn = document.getElementById('update-category');
         
-        // Champs du formulaire de catégorie
+        /**
+         * Champs du formulaire de catégorie
+         * @type {HTMLInputElement}
+         * @private
+         */
         this.categoryNameInput = document.getElementById('category-name');
         this.categoryEmojiInput = document.getElementById('category-emoji');
         this.categoryColorInput = document.getElementById('category-color');
         
-        // ID de la catégorie en cours d'édition
+        /**
+         * ID de la catégorie en cours d'édition
+         * @type {string|null}
+         * @private
+         */
         this.currentEditingCategoryId = null;
         
-        // Initialiser le sélecteur d'emoji
+        // Initialiser les composants de l'interface
         this.initEmojiPicker();
-        
-        // Initialiser les écouteurs d'événements
         this.initEventListeners();
     }
     
     /**
      * Initialise tous les écouteurs d'événements liés aux catégories
+     * @private
      */
     initEventListeners() {
-        // Ouvrir la modal de gestion des catégories
+        // Écouteur pour ouvrir la modal de gestion des catégories
         const addCategoryButton = document.getElementById('add-category-btn');
         if (addCategoryButton) {
-            addCategoryButton.addEventListener('click', () => {
-                this.openCategoriesModal();
-            });
+            addCategoryButton.addEventListener('click', () => this.openCategoriesModal());
         }
         
-        // Fermer la modal
+        // Écouteurs pour la modal de gestion des catégories
         if (this.categoriesModal) {
+            // Fermer la modal
             const closeBtn = this.categoriesModal.querySelector('.modal-close');
             if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    this.categoriesModal.classList.remove('active');
-                });
+                closeBtn.addEventListener('click', () => this.closeModal());
             }
             
             // Ajouter une nouvelle catégorie
             if (this.addCategoryBtn) {
-                this.addCategoryBtn.addEventListener('click', () => {
-                    this.addCategory();
-                });
+                this.addCategoryBtn.addEventListener('click', () => this.addCategory());
             }
             
             // Mettre à jour une catégorie existante
             if (this.updateCategoryBtn) {
-                this.updateCategoryBtn.addEventListener('click', () => {
-                    this.updateCategory();
-                });
+                this.updateCategoryBtn.addEventListener('click', () => this.updateCategory());
             }
             
             // Clic en dehors de la modal pour la fermer
             this.categoriesModal.addEventListener('click', (e) => {
                 if (e.target === this.categoriesModal) {
-                    this.categoriesModal.classList.remove('active');
+                    this.closeModal();
                 }
             });
         }
         
-        // Écouter les événements personnalisés pour mettre à jour l'interface
+        // Écouteur pour les événements personnalisés de mise à jour des catégories
         window.addEventListener('categories:updated', () => {
-            this.renderCategories();
-            this.renderCategoriesNav();
-            this.updateCategorySelect();
+            this.refreshAllCategoryViews();
         });
     }
     
     /**
+     * Ferme la modal de gestion des catégories
+     * @private
+     */
+    closeModal() {
+        if (this.categoriesModal) {
+            this.categoriesModal.classList.remove('active');
+        }
+    }
+    
+    /**
      * Initialise le sélecteur d'emoji pour les catégories
+     * @private
      */
     initEmojiPicker() {
         const emojiPickerBtn = document.getElementById('emoji-picker-button');
@@ -147,6 +202,7 @@ export class CategoryManager {
     
     /**
      * Ouvre la modal de gestion des catégories
+     * Affiche la liste des catégories existantes
      */
     openCategoriesModal() {
         if (!this.categoriesModal) return;
@@ -163,6 +219,7 @@ export class CategoryManager {
     
     /**
      * Réinitialise le formulaire de catégorie
+     * @private
      */
     resetCategoryForm() {
         if (!this.categoryNameInput || !this.categoryEmojiInput || !this.categoryColorInput) return;
@@ -215,8 +272,7 @@ export class CategoryManager {
             // Mettre le focus sur le champ de nom
             this.categoryNameInput.focus();
         } catch (error) {
-            console.error('Erreur lors de l\'ouverture du formulaire d\'édition:', error);
-            alert('Erreur lors de l\'ouverture du formulaire d\'édition: ' + error.message);
+            this.handleError('Erreur lors de l\'ouverture du formulaire d\'édition', error);
         }
     }
     
@@ -232,37 +288,23 @@ export class CategoryManager {
             }
             
             // Récupérer les données du formulaire
-            const categoryData = {
-                name: this.categoryNameInput.value.trim(),
-                emoji: this.categoryEmojiInput.value.trim(),
-                color: this.categoryColorInput.value
-            };
+            const categoryData = this.getCategoryFormData();
             
             // Ajouter la catégorie via le gestionnaire de données
             const newCategory = this.dataManager.addCategory(categoryData);
             
             // Notifier l'utilisateur
-            const notificationManager = window.app?.notificationManager;
-            if (notificationManager) {
-                notificationManager.showNotification(`Catégorie "${newCategory.name}" ajoutée avec succès`);
-            }
+            this.showNotification(`Catégorie "${newCategory.name}" ajoutée avec succès`);
             
             // Déclencher l'événement de mise à jour
-            window.dispatchEvent(new CustomEvent('categories:updated'));
-            
-            // Mettre à jour les interfaces
-            this.renderCategories();
-            this.renderCategoriesNav();
-            this.updateCategorySelect();
-            this.renderCategoryList();
+            this.triggerCategoriesUpdatedEvent();
             
             // Réinitialiser le formulaire
             this.resetCategoryForm();
             
             return true;
         } catch (error) {
-            console.error('Erreur lors de l\'ajout de la catégorie:', error);
-            alert('Erreur lors de l\'ajout de la catégorie: ' + error.message);
+            this.handleError('Erreur lors de l\'ajout de la catégorie', error);
             return false;
         }
     }
@@ -284,39 +326,38 @@ export class CategoryManager {
             }
             
             // Récupérer les données du formulaire
-            const categoryData = {
-                name: this.categoryNameInput.value.trim(),
-                emoji: this.categoryEmojiInput.value.trim(),
-                color: this.categoryColorInput.value
-            };
+            const categoryData = this.getCategoryFormData();
             
             // Mettre à jour la catégorie via le gestionnaire de données
             const updatedCategory = this.dataManager.updateCategory(this.currentEditingCategoryId, categoryData);
             
             // Notifier l'utilisateur
-            const notificationManager = window.app?.notificationManager;
-            if (notificationManager) {
-                notificationManager.showNotification(`Catégorie "${updatedCategory.name}" mise à jour avec succès`);
-            }
+            this.showNotification(`Catégorie "${updatedCategory.name}" mise à jour avec succès`);
             
             // Déclencher l'événement de mise à jour
-            window.dispatchEvent(new CustomEvent('categories:updated'));
-            
-            // Mettre à jour les interfaces
-            this.renderCategories();
-            this.renderCategoriesNav();
-            this.updateCategorySelect();
-            this.renderCategoryList();
+            this.triggerCategoriesUpdatedEvent();
             
             // Réinitialiser le formulaire
             this.resetCategoryForm();
             
             return true;
         } catch (error) {
-            console.error('Erreur lors de la mise à jour de la catégorie:', error);
-            alert('Erreur lors de la mise à jour de la catégorie: ' + error.message);
+            this.handleError('Erreur lors de la mise à jour de la catégorie', error);
             return false;
         }
+    }
+    
+    /**
+     * Récupère les données du formulaire de catégorie
+     * @returns {Object} Données de la catégorie
+     * @private
+     */
+    getCategoryFormData() {
+        return {
+            name: this.categoryNameInput.value.trim(),
+            emoji: this.categoryEmojiInput.value.trim(),
+            color: this.categoryColorInput.value
+        };
     }
     
     /**
@@ -341,37 +382,37 @@ export class CategoryManager {
             this.dataManager.deleteCategory(categoryId);
             
             // Notifier l'utilisateur
-            const notificationManager = window.app?.notificationManager;
-            if (notificationManager) {
-                notificationManager.showNotification(`Catégorie "${categoryName}" supprimée avec succès`);
-            }
-            
-            // Déclencher l'événement de mise à jour
-            window.dispatchEvent(new CustomEvent('categories:updated'));
+            this.showNotification(`Catégorie "${categoryName}" supprimée avec succès`);
             
             // Si nous avions un filtre actif sur cette catégorie, le réinitialiser
-            const uiManager = window.app?.uiManager;
-            if (uiManager && uiManager.activeFilter === categoryId) {
-                window.dispatchEvent(new CustomEvent('categories:resetFilter'));
-            }
+            this.resetFilterIfCategoryDeleted(categoryId);
             
-            // Mettre à jour les interfaces
-            this.renderCategories();
-            this.renderCategoriesNav();
-            this.updateCategorySelect();
-            this.renderCategoryList();
+            // Déclencher l'événement de mise à jour
+            this.triggerCategoriesUpdatedEvent();
             
             return true;
         } catch (error) {
-            console.error('Erreur lors de la suppression de la catégorie:', error);
-            alert('Erreur lors de la suppression de la catégorie: ' + error.message);
+            this.handleError('Erreur lors de la suppression de la catégorie', error);
             return false;
+        }
+    }
+    
+    /**
+     * Réinitialise le filtre si la catégorie supprimée était utilisée comme filtre
+     * @param {string} categoryId - L'identifiant de la catégorie supprimée
+     * @private
+     */
+    resetFilterIfCategoryDeleted(categoryId) {
+        const uiManager = window.app?.uiManager;
+        if (uiManager && uiManager.getCategoryFilterId() === categoryId) {
+            window.dispatchEvent(new CustomEvent('categories:resetFilter'));
         }
     }
     
     /**
      * Valide les données du formulaire de catégorie
      * @returns {boolean} - Indique si les données sont valides
+     * @private
      */
     validateCategoryForm() {
         // Vérifier si les éléments du formulaire existent
@@ -406,6 +447,7 @@ export class CategoryManager {
     
     /**
      * Affiche la liste des catégories dans la modal
+     * @private
      */
     renderCategoryList() {
         if (!this.categoryList) return;
@@ -428,67 +470,77 @@ export class CategoryManager {
         
         // Créer une carte pour chaque catégorie
         categories.forEach(category => {
-            const categoryItem = document.createElement('div');
-            categoryItem.className = 'category-item';
-            categoryItem.dataset.categoryId = category.id;
-            
-            // Couleur et emoji
-            const categoryColor = document.createElement('div');
-            categoryColor.className = 'category-color';
-            categoryColor.style.backgroundColor = category.color;
-            categoryColor.textContent = category.emoji;
-            
-            // Informations
-            const categoryInfo = document.createElement('div');
-            categoryInfo.style.flex = '1';
-            
-            const categoryName = document.createElement('div');
-            categoryName.className = 'category-name';
-            categoryName.textContent = category.name;
-            
-            categoryInfo.appendChild(categoryName);
-            
-            // Boutons d'action
-            const actionsContainer = document.createElement('div');
-            actionsContainer.style.display = 'flex';
-            actionsContainer.style.gap = '5px';
-            
-            // Bouton d'édition
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn-icon';
-            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-            editBtn.title = 'Modifier';
-            editBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.openEditCategoryForm(category.id);
-            });
-            
-            // Bouton de suppression
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn-icon btn-danger';
-            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-            deleteBtn.title = 'Supprimer';
-            deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.deleteCategory(category.id);
-            });
-            
-            actionsContainer.appendChild(editBtn);
-            actionsContainer.appendChild(deleteBtn);
-            
-            // Assembler l'élément
-            categoryItem.appendChild(categoryColor);
-            categoryItem.appendChild(categoryInfo);
-            categoryItem.appendChild(actionsContainer);
-            
-            // Ajouter à la grille
+            const categoryItem = this.createCategoryListItem(category);
             categoryItems.appendChild(categoryItem);
         });
         
         // Ajouter la grille à la liste
         this.categoryList.appendChild(categoryItems);
+    }
+    
+    /**
+     * Crée un élément de liste pour une catégorie
+     * @param {Object} category - La catégorie à afficher
+     * @returns {HTMLElement} - L'élément de liste pour la catégorie
+     * @private
+     */
+    createCategoryListItem(category) {
+        const categoryItem = document.createElement('div');
+        categoryItem.className = 'category-item';
+        categoryItem.dataset.categoryId = category.id;
+        
+        // Couleur et emoji
+        const categoryColor = document.createElement('div');
+        categoryColor.className = 'category-color';
+        categoryColor.style.backgroundColor = category.color;
+        categoryColor.textContent = category.emoji;
+        
+        // Informations
+        const categoryInfo = document.createElement('div');
+        categoryInfo.style.flex = '1';
+        
+        const categoryName = document.createElement('div');
+        categoryName.className = 'category-name';
+        categoryName.textContent = category.name;
+        
+        categoryInfo.appendChild(categoryName);
+        
+        // Boutons d'action
+        const actionsContainer = document.createElement('div');
+        actionsContainer.style.display = 'flex';
+        actionsContainer.style.gap = '5px';
+        
+        // Bouton d'édition
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-icon';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.title = 'Modifier';
+        editBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.openEditCategoryForm(category.id);
+        });
+        
+        // Bouton de suppression
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-icon btn-danger';
+        deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        deleteBtn.title = 'Supprimer';
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.deleteCategory(category.id);
+        });
+        
+        actionsContainer.appendChild(editBtn);
+        actionsContainer.appendChild(deleteBtn);
+        
+        // Assembler l'élément
+        categoryItem.appendChild(categoryColor);
+        categoryItem.appendChild(categoryInfo);
+        categoryItem.appendChild(actionsContainer);
+        
+        return categoryItem;
     }
     
     /**
@@ -501,6 +553,32 @@ export class CategoryManager {
         this.categoriesNav.innerHTML = '';
         
         // Ajouter l'option "Tous les événements"
+        this.addAllEventsOption();
+        
+        // Récupérer les catégories
+        const categories = this.dataManager.getAllCategories();
+        
+        // Afficher un message si aucune catégorie
+        if (categories.length === 0) {
+            const noCategories = document.createElement('div');
+            noCategories.className = 'nav-item disabled';
+            noCategories.textContent = 'Aucune catégorie';
+            this.categoriesNav.appendChild(noCategories);
+            return;
+        }
+        
+        // Créer un élément de navigation pour chaque catégorie
+        categories.forEach(category => {
+            const navItem = this.createCategoryNavItem(category);
+            this.categoriesNav.appendChild(navItem);
+        });
+    }
+    
+    /**
+     * Ajoute l'option "Tous les événements" à la navigation des catégories
+     * @private
+     */
+    addAllEventsOption() {
         const allEventsItem = document.createElement('div');
         allEventsItem.className = 'nav-item';
         allEventsItem.dataset.categoryId = 'all';
@@ -520,89 +598,77 @@ export class CategoryManager {
         
         // Événement de clic pour réinitialiser le filtre
         allEventsItem.addEventListener('click', () => {
-            // Déclencher un événement pour réinitialiser le filtre
             window.dispatchEvent(new CustomEvent('categories:resetFilter'));
-            
-            // Mettre à jour les états actifs
-            this.categoriesNav.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            allEventsItem.classList.add('active');
         });
         
-        // Ajouter à la navigation
-        this.categoriesNav.appendChild(allEventsItem);
-        
-        // Si aucun filtre n'est actif, marquer "Tous les événements" comme actif
+        // Marquer comme actif si aucun filtre n'est appliqué
         const uiManager = window.app?.uiManager;
-        if (!uiManager || !uiManager.activeFilter || uiManager.activeFilter === 'all') {
+        if (!uiManager || !uiManager.isCategoryFilterActive()) {
             allEventsItem.classList.add('active');
         }
         
-        // Récupérer les catégories
-        const categories = this.dataManager.getAllCategories();
+        this.categoriesNav.appendChild(allEventsItem);
+    }
+    
+    /**
+     * Crée un élément de navigation pour une catégorie
+     * @param {Object} category - La catégorie à afficher
+     * @returns {HTMLElement} - L'élément de navigation
+     * @private
+     */
+    createCategoryNavItem(category) {
+        const navItem = document.createElement('div');
+        navItem.className = 'nav-item';
+        navItem.dataset.categoryId = category.id;
         
-        // Afficher un message si aucune catégorie
-        if (categories.length === 0) {
-            const noCategories = document.createElement('div');
-            noCategories.className = 'nav-item disabled';
-            noCategories.textContent = 'Aucune catégorie';
-            this.categoriesNav.appendChild(noCategories);
-            return;
+        // Vérifier si cette catégorie est le filtre actif
+        const uiManager = window.app?.uiManager;
+        if (uiManager && uiManager.isCategoryFilterActive() && 
+            uiManager.getCategoryFilterId() === category.id) {
+            navItem.classList.add('active');
         }
         
-        // Créer un élément de navigation pour chaque catégorie
-        categories.forEach(category => {
-            const navItem = document.createElement('div');
-            navItem.className = 'nav-item';
-            navItem.dataset.categoryId = category.id;
-            
-            // Si cette catégorie est le filtre actif, la marquer comme active
-            if (uiManager && uiManager.activeFilter === category.id) {
-                navItem.classList.add('active');
-            }
-            
-            // Emoji
-            const categoryEmoji = document.createElement('span');
-            categoryEmoji.style.marginRight = '10px';
-            categoryEmoji.textContent = category.emoji;
-            
-            // Indicateur de couleur
-            const colorIndicator = document.createElement('span');
-            colorIndicator.className = 'color-indicator';
-            colorIndicator.style.display = 'inline-block';
-            colorIndicator.style.width = '8px';
-            colorIndicator.style.height = '8px';
-            colorIndicator.style.borderRadius = '50%';
-            colorIndicator.style.backgroundColor = category.color;
-            colorIndicator.style.marginRight = '5px';
-            
-            // Nom
-            const categoryName = document.createElement('span');
-            categoryName.textContent = category.name;
-            
-            // Assembler l'élément
-            navItem.appendChild(categoryEmoji);
-            navItem.appendChild(colorIndicator);
-            navItem.appendChild(categoryName);
-            
-            // Événement de clic pour filtrer les événements
-            navItem.addEventListener('click', (e) => {
-                // Mettre à jour les états actifs
-                this.categoriesNav.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                navItem.classList.add('active');
-                
-                // Déclencher un événement pour filtrer les événements
-                window.dispatchEvent(new CustomEvent('categories:filter', {
-                    detail: { categoryId: category.id }
-                }));
-            });
-            
-            // Ajouter à la navigation
-            this.categoriesNav.appendChild(navItem);
+        // Emoji
+        const categoryEmoji = document.createElement('span');
+        categoryEmoji.style.marginRight = '10px';
+        categoryEmoji.textContent = category.emoji;
+        
+        // Indicateur de couleur
+        const colorIndicator = document.createElement('span');
+        colorIndicator.className = 'color-indicator';
+        colorIndicator.style.display = 'inline-block';
+        colorIndicator.style.width = '8px';
+        colorIndicator.style.height = '8px';
+        colorIndicator.style.borderRadius = '50%';
+        colorIndicator.style.backgroundColor = category.color;
+        colorIndicator.style.marginRight = '5px';
+        
+        // Nom
+        const categoryName = document.createElement('span');
+        categoryName.textContent = category.name;
+        
+        // Assembler l'élément
+        navItem.appendChild(categoryEmoji);
+        navItem.appendChild(colorIndicator);
+        navItem.appendChild(categoryName);
+        
+        // Événement de clic pour filtrer les événements
+        navItem.addEventListener('click', () => {
+            this.triggerCategoryFilterEvent(category.id);
         });
+        
+        return navItem;
+    }
+    
+    /**
+     * Déclenche un événement pour filtrer les événements par catégorie
+     * @param {string} categoryId - L'identifiant de la catégorie
+     * @private
+     */
+    triggerCategoryFilterEvent(categoryId) {
+        window.dispatchEvent(new CustomEvent('categories:filter', {
+            detail: { categoryId: categoryId }
+        }));
     }
     
     /**
@@ -675,35 +741,92 @@ export class CategoryManager {
         
         // Créer une carte pour chaque catégorie
         categories.forEach(category => {
-            const categoryItem = document.createElement('div');
-            categoryItem.className = 'category-item';
-            categoryItem.dataset.categoryId = category.id;
-            
-            // Couleur et emoji
-            const categoryColor = document.createElement('div');
-            categoryColor.className = 'category-color';
-            categoryColor.style.backgroundColor = category.color;
-            categoryColor.textContent = category.emoji;
-            
-            // Nom
-            const categoryName = document.createElement('div');
-            categoryName.className = 'category-name';
-            categoryName.textContent = category.name;
-            
-            // Assembler l'élément
-            categoryItem.appendChild(categoryColor);
-            categoryItem.appendChild(categoryName);
-            
-            // Événement de clic pour filtrer les événements
-            categoryItem.addEventListener('click', () => {
-                window.dispatchEvent(new CustomEvent('categories:filter', {
-                    detail: { categoryId: category.id }
-                }));
-            });
-            
-            // Ajouter au conteneur
+            const categoryItem = this.createCategoryItem(category);
             container.appendChild(categoryItem);
         });
+    }
+    
+    /**
+     * Crée un élément pour une catégorie
+     * @param {Object} category - La catégorie à afficher
+     * @returns {HTMLElement} - L'élément de catégorie
+     * @private
+     */
+    createCategoryItem(category) {
+        const categoryItem = document.createElement('div');
+        categoryItem.className = 'category-item';
+        categoryItem.dataset.categoryId = category.id;
+        
+        // Couleur et emoji
+        const categoryColor = document.createElement('div');
+        categoryColor.className = 'category-color';
+        categoryColor.style.backgroundColor = category.color;
+        categoryColor.textContent = category.emoji;
+        
+        // Nom
+        const categoryName = document.createElement('div');
+        categoryName.className = 'category-name';
+        categoryName.textContent = category.name;
+        
+        // Assembler l'élément
+        categoryItem.appendChild(categoryColor);
+        categoryItem.appendChild(categoryName);
+        
+        // Événement de clic pour filtrer les événements
+        categoryItem.addEventListener('click', () => {
+            this.triggerCategoryFilterEvent(category.id);
+        });
+        
+        return categoryItem;
+    }
+    
+    /**
+     * Met à jour toutes les vues des catégories
+     * @private
+     */
+    refreshAllCategoryViews() {
+        this.renderCategories();
+        this.renderCategoriesNav();
+        this.updateCategorySelect();
+        this.renderCategoryList();
+    }
+    
+    /**
+     * Déclenche l'événement de mise à jour des catégories
+     * @private
+     */
+    triggerCategoriesUpdatedEvent() {
+        window.dispatchEvent(new CustomEvent('categories:updated'));
+    }
+    
+    /**
+     * Gère les erreurs de manière standardisée
+     * @param {string} message - Message d'erreur pour l'utilisateur
+     * @param {Error} error - L'objet d'erreur
+     * @private
+     */
+    handleError(message, error) {
+        console.error(`${message}:`, error);
+        this.showNotification(message, true);
+    }
+    
+    /**
+     * Affiche une notification à l'utilisateur
+     * @param {string} message - Message à afficher
+     * @param {boolean} isError - Indique si c'est une erreur
+     * @private
+     */
+    showNotification(message, isError = false) {
+        const notificationManager = window.app?.notificationManager;
+        if (notificationManager) {
+            notificationManager.showNotification(message, isError);
+        } else {
+            // Fallback si le gestionnaire de notifications n'est pas disponible
+            console.log(message);
+            if (isError) {
+                alert(message);
+            }
+        }
     }
     
     /**
