@@ -72,11 +72,12 @@ export class UIManager {
             });
         }
         // Bouton pour quitter l'application
-        if (quitAppBtn) {
-            quitAppBtn.addEventListener('click', () => {
-                this.quitApplication();
-            });
-        }
+        // if (quitAppBtn) {
+        //     quitAppBtn.addEventListener('click', () => {
+        //         this.quitApplication();
+        //     });
+        // }
+
         // Bouton d'ouverture de la modal des catégories
         if (this.addCategoryBtn) {
             this.addCategoryBtn.addEventListener('click', () => {
