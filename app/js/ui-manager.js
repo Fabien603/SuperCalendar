@@ -56,9 +56,7 @@ export class UIManager {
                 .then(() => {
                     // Quitter l'application via l'API Electron
                     confirmQuit = confirm('Tentative de fermeture avec app.quit()');
-                    if (window.electronAPI) {
-                        window.electronAPI.quitApp();
-                    }
+                    window.electronAPI.quitApp();
                 })
                 .catch(error => {
                     console.error('Erreur lors de la sauvegarde avant fermeture:', error);
