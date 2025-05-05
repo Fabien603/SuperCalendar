@@ -314,7 +314,7 @@ ipcMain.handle('save-preferences', (event, data) => {
   return true;
 });
 
-ipcMain.on('quit-app', () => {
+ipcMain.handle('quit-app', () => {
   app.quit();
   return true;
 });
