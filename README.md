@@ -54,6 +54,7 @@ npm start
 ```
 SuperCalendar/
 ├── app/                      # Code source de l'application web
+│   ├── assets/               # Icône de l'application
 │   ├── css/                  # Feuilles de style CSS
 │   ├── js/                   # Scripts JavaScript
 │   │   ├── utils/            # Fonctions utilitaires (date-utils.js, uuid.js)
@@ -68,7 +69,6 @@ SuperCalendar/
 │   │   └── ui-manager.js     # Gestionnaire d'interface utilisateur
 │   └── index.html            # Page HTML principale
 ├── build/                    # Ressources pour la compilation
-│   └── icons/                # Icônes de l'application
 ├── dist/                     # Fichiers générés pour la distribution
 ├── main.js                   # Point d'entrée Electron
 ├── preload.js                # Script de préchargement Electron
