@@ -314,6 +314,11 @@ ipcMain.handle('save-preferences', (event, data) => {
   return true;
 });
 
+ipcMain.handle('quit-app', () => {
+  app.quit();
+  return true;
+});
+
 // Événements de l'application Electron
 app.on('ready', createWindow);
 
