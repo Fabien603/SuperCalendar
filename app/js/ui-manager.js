@@ -47,6 +47,28 @@ export class UIManager {
         this.updateUI();
     }
     
+    quitApplication() {
+        // Demander confirmation avant de quitter
+        const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
+        if (confirmQuit) {
+            // Sauvegarder les données si nécessaire
+            this.categoryManager.dataManager.saveData()
+                .then(() => {
+                    // Quitter l'application via l'API Electron
+                    if (window.electronAPI) {
+                        window.electronAPI.quitApp();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la sauvegarde avant fermeture:', error);
+                    // Quitter malgré l'erreur
+                    if (window.electronAPI) {
+                        window.electronAPI.quitApp();
+                    }
+                });
+        }
+    }
+
     initEventListeners() {
         // Navigation entre les vues
         this.viewButtons.forEach(button => {
@@ -223,17 +245,6 @@ export class UIManager {
                 e.detail.isError || false
             );
         });
-    }
-    
-    quitApplication() {
-        const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
-        
-        if (confirmQuit) {
-            // Approche directe sans attendre la sauvegarde
-            if (window.electronAPI) {
-                window.electronAPI.quitApp();
-            }
-        }
     }
 
     // Mettre à jour l'interface utilisateur    
