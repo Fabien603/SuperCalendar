@@ -1,7 +1,20 @@
-
+// Gestionnaire de l'interface utilisateur pour SuperCalendrier
 import { DateUtils } from './utils/date-utils.js';
 
+/**
+ * Classe UIManager responsable de la gestion de l'interface utilisateur
+ * Coordonne les interactions entre l'utilisateur et les différents gestionnaires
+ */
 export class UIManager {
+    /**
+     * Constructeur du gestionnaire d'interface utilisateur
+     * @param {CalendarManager} calendarManager - Gestionnaire de calendrier
+     * @param {EventManager} eventManager - Gestionnaire d'événements
+     * @param {CategoryManager} categoryManager - Gestionnaire de catégories
+     * @param {ThemeManager} themeManager - Gestionnaire de thèmes
+     * @param {NotificationManager} notificationManager - Gestionnaire de notifications
+     * @param {PrintManager} printManager - Gestionnaire d'impression
+     */
     constructor(calendarManager, eventManager, categoryManager, themeManager, notificationManager, printManager) {
         // Références aux autres gestionnaires
         this.calendarManager = calendarManager;
@@ -32,13 +45,16 @@ export class UIManager {
         this.toggleSidebarBtn = document.querySelector('.toggle-sidebar');
         this.sidebar = document.querySelector('.sidebar');
         
-        // Propriété pour stocker le filtre actif
-                this.categoryFilter = {
-            active: false,
-            categoryId: 'all'
+        // État du filtre par catégorie (unifié)
+        this.categoryFilter = {
+            categoryId: 'all', // 'all' ou ID de catégorie
+            active: false      // Indique si un filtre est activé
         };
     }
     
+    /**
+     * Initialise le gestionnaire d'interface utilisateur
+     */
     init() {
         // Initialiser les écouteurs d'événements
         this.initEventListeners();
@@ -50,6 +66,9 @@ export class UIManager {
         this.updateUI();
     }
 
+    /**
+     * Initialise tous les écouteurs d'événements d'interface
+     */
     initEventListeners() {
         // Navigation entre les vues
         this.viewButtons.forEach(button => {
@@ -73,6 +92,7 @@ export class UIManager {
                 this.eventManager.openAddEventForm(new Date());
             });
         }
+
         // Bouton pour quitter l'application
         const quitAppBtn = document.getElementById('quit-app-btn');
         if (quitAppBtn) {
@@ -185,6 +205,9 @@ export class UIManager {
         }
     }
     
+    /**
+     * Quitte l'application après confirmation et sauvegarde des données
+     */
     quitApplication() {
         // Demander confirmation avant de quitter
         const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
@@ -224,28 +247,27 @@ export class UIManager {
         }
     }
 
+    /**
+     * Initialise les écouteurs d'événements personnalisés
+     */
     initCustomEvents() {
-        // Écouteur pour les events personnalisés
+        // Événements du calendrier
         window.addEventListener('calendar:eventsUpdated', () => {
-            // Force une mise à jour complète des événements
             console.log('Événements mis à jour, rafraîchissement des vues...');
             this.updateCalendarEvents();
         });
         
         window.addEventListener('calendar:viewChanged', () => {
-            // Mise à jour nécessaire après un changement de vue - maintenir le filtrage
             this.updateCalendarEvents();
         });
         
         window.addEventListener('calendar:dateChanged', () => {
-            // Mise à jour nécessaire après un changement de date - maintenir le filtrage
             this.updateCalendarEvents();
         });
         
         // Événements liés aux catégories
         window.addEventListener('categories:updated', () => {
             this.updateCategories();
-            // Maintenir le filtrage après mise à jour des catégories
             this.updateCalendarEvents();
         });
         
@@ -266,7 +288,9 @@ export class UIManager {
         });
     }
 
-    // Mettre à jour l'interface utilisateur    
+    /**
+     * Met à jour l'ensemble de l'interface utilisateur
+     */
     updateUI() {
         // Mettre à jour les catégories
         this.updateCategories();
@@ -281,7 +305,9 @@ export class UIManager {
         this.themeManager.applyTheme();
     }
     
-    // Mise à jour du titre avec indication du filtre si actif
+    /**
+     * Met à jour le titre de la vue avec indication du filtre si actif
+     */
     updateViewTitle() {
         const viewTitle = document.getElementById('current-view-title');
         if (!viewTitle) return;
@@ -302,7 +328,9 @@ export class UIManager {
         }
     }
 
-    // Mettre à jour les boutons de vue et maintenir l'état du filtre
+    /**
+     * Met à jour les boutons de vue en fonction de la vue active
+     */
     updateViewButtons() {
         const currentView = this.calendarManager.currentView;
         
@@ -318,7 +346,10 @@ export class UIManager {
         this.updateViewTitle();
     }
     
-    // Mise à jour des événements du calendrier avec gestion améliorée du filtre
+    /**
+     * Met à jour les événements affichés dans le calendrier 
+     * en appliquant le filtre actif si nécessaire
+     */
     updateCalendarEvents() {
         // Récupérer tous les événements
         const allEvents = this.categoryManager.dataManager.getAllEvents();
@@ -342,33 +373,10 @@ export class UIManager {
         // Mise à jour du titre pour indiquer le filtrage si actif
         this.updateViewTitle();
     }
-
-    // Mettre à jour les événements du calendrier avec un filtre actif
-    updateCalendarEventsWithFilter() {
-        // Récupérer tous les événements
-        const allEvents = this.categoryManager.dataManager.getAllEvents();
-        
-        // Déterminer quels événements afficher
-        let eventsToShow;
-        
-        if (!this.activeFilter || this.activeFilter === 'all') {
-            // Pas de filtre actif, utiliser tous les événements
-            eventsToShow = allEvents;
-            console.log("Affichage de tous les événements (pas de filtre actif)");
-        } else {
-            // Filtrer les événements par catégorie
-            eventsToShow = allEvents.filter(event => event.categoryId === this.activeFilter);
-            console.log(`Affichage des événements de la catégorie ${this.activeFilter}, ${eventsToShow.length} événements trouvés`);
-        }
-        
-        // Mettre à jour les événements dans le calendrier avec les événements filtrés
-        this.eventManager.updateEventsInCalendar(this.calendarManager, eventsToShow);
-        
-        // Mettre à jour la liste des événements à venir
-        this.eventManager.renderUpcomingEvents(eventsToShow);
-    }
     
-    // Mettre à jour les catégories
+    /**
+     * Met à jour les catégories dans l'interface
+     */
     updateCategories() {
         // Mettre à jour la liste des catégories
         this.categoryManager.renderCategories();
@@ -380,7 +388,10 @@ export class UIManager {
         this.categoryManager.updateCategorySelect();
     }
     
-    // Appliquer un filtre par catégorie - méthode simplifiée et clarifiée
+    /**
+     * Applique un filtre par catégorie pour les événements
+     * @param {string} categoryId - ID de la catégorie ou 'all' pour toutes les catégories
+     */
     filterEventsByCategory(categoryId) {
         console.log('Application du filtre de catégorie:', categoryId);
         
@@ -415,22 +426,33 @@ export class UIManager {
         this.notificationManager.showNotification(message);
     }
 
-    // Réinitialiser le filtre - méthode simplifiée
+    /**
+     * Réinitialise le filtre de catégories (affiche tous les événements)
+     */
     resetCategoryFilter() {
         this.filterEventsByCategory('all');
     }
     
-    // Méthode pour savoir si un filtre est actif
+    /**
+     * Vérifie si un filtre de catégorie est actuellement actif
+     * @returns {boolean} Vrai si un filtre est actif
+     */
     isCategoryFilterActive() {
         return this.categoryFilter.active;
     }
     
-    // Méthode pour obtenir l'ID de la catégorie filtrée
-    getActiveCategoryFilter() {
+    /**
+     * Retourne l'ID de la catégorie actuellement filtrée
+     * @returns {string} ID de la catégorie ou 'all'
+     */
+    getCategoryFilterId() {
         return this.categoryFilter.categoryId;
     }
 
-    // Obtenir le nom de la vue actuelle
+    /**
+     * Obtient le nom de la vue actuelle en français
+     * @returns {string} Nom de la vue actuelle
+     */
     getCurrentViewName() {
         switch (this.calendarManager.currentView) {
             case 'yearly':
@@ -445,13 +467,11 @@ export class UIManager {
                 return 'Calendrier';
         }
     }
-
-    // Réinitialiser le filtre de catégories
-    resetCategoryFilter() {
-        this.filterEventsByCategory('all');
-    }
     
-    // Mettre en évidence la catégorie sélectionnée dans la navigation
+    /**
+     * Met en évidence la catégorie sélectionnée dans la navigation
+     * @param {string} categoryId - ID de la catégorie sélectionnée
+     */
     highlightSelectedCategory(categoryId) {
         // Supprimer la classe active de tous les éléments de navigation de catégorie
         const categoryItems = document.querySelectorAll('#categories-nav .nav-item');
@@ -463,19 +483,25 @@ export class UIManager {
         });
     }
 
-    // Ouvrir la modal des catégories
+    /**
+     * Ouvre la modal de gestion des catégories
+     */
     openCategoriesModal() {
         if (this.categoriesModal) {
             // Réinitialiser le formulaire de catégorie
             this.categoryManager.resetCategoryForm();
+            
             // Forcer une mise à jour de la liste des catégories
-            this.categoryManager.renderCategories();
+            this.categoryManager.renderCategoryList();
+            
             // Afficher la modale
             this.categoriesModal.classList.add('active');
         }
     }
     
-    // Ouvrir la modal des paramètres
+    /**
+     * Ouvre la modal des paramètres
+     */
     openSettingsModal() {
         if (!this.settingsModal) return;
         
@@ -531,7 +557,9 @@ export class UIManager {
         this.settingsModal.classList.add('active');
     }
 
-    // Sauvegarder les paramètres
+    /**
+     * Sauvegarde les paramètres et applique les changements
+     */
     async saveSettings() {
         // Récupérer les valeurs des champs
         const themeSelect = document.getElementById('settings-theme');
@@ -579,7 +607,9 @@ export class UIManager {
         }
     }
     
-    // Ouvrir la modal d'import/export
+    /**
+     * Ouvre la modal d'import/export
+     */
     openImportExportModal() {
         if (!this.importExportModal) return;
         
@@ -599,7 +629,10 @@ export class UIManager {
         this.importExportModal.classList.add('active');
     }
     
-    // Exporter les données
+    /**
+     * Exporte les données du calendrier
+     * @param {string} format - Format d'export ('json' ou 'ics')
+     */
     async exportData(format = 'json') {
         try {
             // Définir le nom de fichier par défaut
@@ -623,10 +656,10 @@ export class UIManager {
                     exportDate: new Date().toISOString()
                 }, null, 2);
             } else if (format === 'ics') {
-                // Pour le format iCal, utiliser ical-generator si disponible
-                if (window.icalGenerator) {
+                // Pour le format iCal, utiliser la méthode d'exportation du gestionnaire de données
+                try {
                     data = await this.categoryManager.dataManager.exportToICS();
-                } else {
+                } catch (error) {
                     throw new Error('Format iCal non encore pris en charge dans cette version');
                 }
             }
@@ -666,7 +699,9 @@ export class UIManager {
         }
     }
     
-    // Importer des données
+    /**
+     * Importe des données depuis un fichier
+     */
     async importData() {
         try {
             const importFile = document.getElementById('import-file');
@@ -696,11 +731,11 @@ export class UIManager {
                         const data = JSON.parse(content);
                         
                         // Valider les données
-                        if (!data || !data.events || !data.categories) {
+                        if (!data || (!data.events && !data.categories)) {
                             throw new Error('Format de données invalide');
                         }
                         
-                        // Fusionner ou remplacer les données existantes
+                        // Utiliser la méthode importData du gestionnaire de données
                         await this.categoryManager.dataManager.importData(data);
                         
                         // Mettre à jour l'interface
@@ -714,7 +749,7 @@ export class UIManager {
                         // Afficher une notification
                         this.notificationManager.showNotification('Données importées avec succès');
                     } else if (file.name.endsWith('.ics')) {
-                        // Importer les données iCal si la fonctionnalité est disponible
+                        // Importer les données iCal si la méthode existe
                         if (this.categoryManager.dataManager.importFromICS) {
                             await this.categoryManager.dataManager.importFromICS(content);
                             
@@ -775,7 +810,9 @@ export class UIManager {
         }
     }
 
-    // Ouvrir la modal d'impression
+    /**
+     * Ouvre la modal d'impression
+     */
     openPrintModal() {
         if (!this.printModal) return;
         
