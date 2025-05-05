@@ -191,8 +191,22 @@ export class UIManager {
                 .then(() => {
                     // Quitter l'application via l'API Electron
                     if (window.electronAPI) {
-                        confirmQuit = confirm('Tentative de fermeture avec app.quit()');
-                        window.electronAPI.quitApp();
+                        console.log('Tentative de fermeture de l\'application...');
+                        window.electronAPI.quitApp()
+                            .then(success => {
+                                console.log('Résultat de la tentative de fermeture:', success);
+                                // Si la fermeture par IPC échoue, tenter de fermer la fenêtre
+                                if (!success && window.close) {
+                                    console.log('Tentative de fermeture de la fenêtre...');
+                                    window.close();
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Erreur lors de la tentative de fermeture:', err);
+                            });
+                    } else if (window.close) {
+                        // Fallback pour les navigateurs
+                        window.close();
                     }
                 })
                 .catch(error => {
@@ -200,6 +214,8 @@ export class UIManager {
                     // Quitter malgré l'erreur
                     if (window.electronAPI) {
                         window.electronAPI.quitApp();
+                    } else if (window.close) {
+                        window.close();
                     }
                 });
         }
