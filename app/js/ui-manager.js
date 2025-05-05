@@ -46,27 +46,6 @@ export class UIManager {
         // Initialiser les interfaces
         this.updateUI();
     }
-    
-    quitApplication() {
-        // Demander confirmation avant de quitter
-        const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
-        if (confirmQuit) {
-            // Sauvegarder les données si nécessaire
-            this.categoryManager.dataManager.saveData()
-                .then(() => {
-                    // Quitter l'application via l'API Electron
-                    confirmQuit = confirm('Tentative de fermeture avec app.quit()');
-                    window.electronAPI.quitApp();
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la sauvegarde avant fermeture:', error);
-                    // Quitter malgré l'erreur
-                    if (window.electronAPI) {
-                        window.electronAPI.quitApp();
-                    }
-                });
-        }
-    }
 
     initEventListeners() {
         // Navigation entre les vues
@@ -203,6 +182,29 @@ export class UIManager {
         }
     }
     
+    quitApplication() {
+        // Demander confirmation avant de quitter
+        const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
+        if (confirmQuit) {
+            // Sauvegarder les données si nécessaire
+            this.categoryManager.dataManager.saveData()
+                .then(() => {
+                    // Quitter l'application via l'API Electron
+                    confirmQuit = confirm('Tentative de fermeture avec app.quit()');
+                    if (window.electronAPI) {
+                        window.electronAPI.quitApp();
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la sauvegarde avant fermeture:', error);
+                    // Quitter malgré l'erreur
+                    if (window.electronAPI) {
+                        window.electronAPI.quitApp();
+                    }
+                });
+        }
+    }
+
     // Initialiser les événements personnalisés
     initCustomEvents() {
         // Écouteur pour les events personnalisés
