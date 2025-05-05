@@ -56,7 +56,7 @@ export class UIManager {
                 .then(() => {
                     // Quitter l'application via l'API Electron
                     if (window.electronAPI) {
-                        console.log('Tentative de fermeture avec app.quit()');
+                        confirmQuit = confirm('Tentative de fermeture avec app.quit()');
                         window.electronAPI.quitApp();
                     }
                 })
