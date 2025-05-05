@@ -23,7 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onExportFile: (callback) => ipcRenderer.on('menu-export-file', callback),
   onOpenPreferences: (callback) => ipcRenderer.on('menu-open-preferences', callback),
   // Nouvelle fonction pour quitter l'application
-  quitApp: () => ipcRenderer.invoke('quit-app'),
+  quitApp: (callback) => ipcRenderer.on('quit-app',callback),
 
   // Écouteurs pour les changements de vue
   onViewYearly: (callback) => ipcRenderer.on('menu-view-yearly', callback),
