@@ -1267,13 +1267,13 @@ export class EventManager {
         // Filtrer les événements en fonction de la vue
         let filteredEvents = this.filterEventsByView(events, currentView, currentDate);
         
-        console.log(`Après filtrage: ${filteredEvents.length} événements à afficher dans la vue ${currentView}`);
+        console.log(`Après filtrage par vue: ${filteredEvents.length} événements à afficher`);
         
         // Ajouter les événements au calendrier en fonction de la vue
         this.renderEventsInCalendar(calendarManager, filteredEvents);
         
-        // Mettre à jour la liste des événements à venir
-        this.renderUpcomingEvents();
+        // Mise à jour des événements à venir n'est pas faite ici car elle est gérée séparément
+        // pour permettre un contrôle plus fin par UIManager
     }
 
     // Filtrer les événements selon la vue active

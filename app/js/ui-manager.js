@@ -33,7 +33,10 @@ export class UIManager {
         this.sidebar = document.querySelector('.sidebar');
         
         // Propriété pour stocker le filtre actif
-        this.activeFilter = 'all'; // 'all' ou ID de catégorie
+                this.categoryFilter = {
+            active: false,
+            categoryId: 'all'
+        };
     }
     
     init() {
@@ -221,30 +224,29 @@ export class UIManager {
         }
     }
 
-    // Initialiser les événements personnalisés
     initCustomEvents() {
         // Écouteur pour les events personnalisés
         window.addEventListener('calendar:eventsUpdated', () => {
             // Force une mise à jour complète des événements
             console.log('Événements mis à jour, rafraîchissement des vues...');
-            
-            // Mettre à jour les événements dans la vue actuelle
             this.updateCalendarEvents();
         });
         
         window.addEventListener('calendar:viewChanged', () => {
-            // Mise à jour nécessaire après un changement de vue
+            // Mise à jour nécessaire après un changement de vue - maintenir le filtrage
             this.updateCalendarEvents();
         });
         
         window.addEventListener('calendar:dateChanged', () => {
-            // Mise à jour nécessaire après un changement de date
+            // Mise à jour nécessaire après un changement de date - maintenir le filtrage
             this.updateCalendarEvents();
         });
         
         // Événements liés aux catégories
         window.addEventListener('categories:updated', () => {
             this.updateCategories();
+            // Maintenir le filtrage après mise à jour des catégories
+            this.updateCalendarEvents();
         });
         
         window.addEventListener('categories:filter', (e) => {
@@ -279,7 +281,28 @@ export class UIManager {
         this.themeManager.applyTheme();
     }
     
-    // Mettre à jour les boutons de vue
+    // Mise à jour du titre avec indication du filtre si actif
+    updateViewTitle() {
+        const viewTitle = document.getElementById('current-view-title');
+        if (!viewTitle) return;
+        
+        // Définir le titre de base selon la vue
+        viewTitle.textContent = this.getCurrentViewName();
+        
+        // Ajouter l'indication du filtre si actif
+        if (this.categoryFilter.active && this.categoryFilter.categoryId !== 'all') {
+            try {
+                const category = this.categoryManager.dataManager.getCategoryById(this.categoryFilter.categoryId);
+                if (category) {
+                    viewTitle.textContent += ` - ${category.emoji} ${category.name}`;
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération de la catégorie:", error);
+            }
+        }
+    }
+
+    // Mettre à jour les boutons de vue et maintenir l'état du filtre
     updateViewButtons() {
         const currentView = this.calendarManager.currentView;
         
@@ -291,48 +314,33 @@ export class UIManager {
             }
         });
         
-        // Mettre à jour le titre de la page
-        const viewTitle = document.getElementById('current-view-title');
-        if (viewTitle) {
-            switch (currentView) {
-                case 'yearly':
-                    viewTitle.textContent = 'Vue annuelle';
-                    break;
-                case 'monthly':
-                    viewTitle.textContent = 'Vue mensuelle';
-                    break;
-                case 'weekly':
-                    viewTitle.textContent = 'Vue hebdomadaire';
-                    break;
-                case 'daily':
-                    viewTitle.textContent = 'Vue quotidienne';
-                    break;
-            }
-            
-            // Si un filtre est actif, ajouter le nom de la catégorie au titre
-            if (this.activeFilter !== 'all') {
-                try {
-                    const category = this.categoryManager.dataManager.getCategoryById(this.activeFilter);
-                    if (category) {
-                        viewTitle.textContent += ` - ${category.emoji} ${category.name}`;
-                    }
-                } catch (error) {
-                    console.error("Catégorie non trouvée:", error);
-                }
-            }
-        }
+        // Mettre à jour le titre avec prise en compte du filtre
+        this.updateViewTitle();
     }
     
-    // Mettre à jour les événements du calendrier
+    // Mise à jour des événements du calendrier avec gestion améliorée du filtre
     updateCalendarEvents() {
-        // Vérifier s'il y a un filtre actif
-        if (this.activeFilter && this.activeFilter !== 'all') {
-            this.updateCalendarEventsWithFilter();
-        } else {
-            // Comportement standard sans filtre
-            this.eventManager.updateEventsInCalendar(this.calendarManager);
-            this.eventManager.renderUpcomingEvents();
+        // Récupérer tous les événements
+        const allEvents = this.categoryManager.dataManager.getAllEvents();
+        
+        // Appliquer le filtre si nécessaire
+        let eventsToShow = allEvents;
+        
+        if (this.categoryFilter.active && this.categoryFilter.categoryId !== 'all') {
+            eventsToShow = allEvents.filter(event => 
+                event.categoryId === this.categoryFilter.categoryId
+            );
+            console.log(`Filtre actif: ${this.categoryFilter.categoryId}, ${eventsToShow.length} événements correspondants`);
         }
+        
+        // Mise à jour des événements dans toutes les vues
+        this.eventManager.updateEventsInCalendar(this.calendarManager, eventsToShow);
+        
+        // Mise à jour de la liste des événements à venir
+        this.eventManager.renderUpcomingEvents(eventsToShow);
+        
+        // Mise à jour du titre pour indiquer le filtrage si actif
+        this.updateViewTitle();
     }
 
     // Mettre à jour les événements du calendrier avec un filtre actif
@@ -372,48 +380,56 @@ export class UIManager {
         this.categoryManager.updateCategorySelect();
     }
     
-    // Filtrer les événements par catégorie
+    // Appliquer un filtre par catégorie - méthode simplifiée et clarifiée
     filterEventsByCategory(categoryId) {
-        console.log('Filtrer les événements par catégorie:', categoryId);
+        console.log('Application du filtre de catégorie:', categoryId);
         
-        // Obtenir la catégorie sélectionnée
-        let category = null;
-        try {
-            if (categoryId !== 'all') {
-                category = this.categoryManager.dataManager.getCategoryById(categoryId);
-            }
-        } catch (error) {
-            console.error('Erreur lors de la récupération de la catégorie:', error);
-        }
+        // Vérifier si c'est une réinitialisation
+        const isReset = categoryId === 'all';
         
-        // Mettre à jour le titre pour indiquer le filtrage
-        const viewTitle = document.getElementById('current-view-title');
-        if (viewTitle) {
-            if (category) {
-                viewTitle.textContent = `${this.getCurrentViewName()} - ${category.emoji} ${category.name}`;
-            } else if (categoryId === 'all') {
-                // Réinitialiser le titre en fonction de la vue actuelle
-                viewTitle.textContent = this.getCurrentViewName();
-            }
-        }
+        // Mettre à jour l'état du filtre
+        this.categoryFilter = {
+            active: !isReset,
+            categoryId: categoryId
+        };
         
-        // Mettre en évidence la catégorie sélectionnée dans la navigation
+        // Mettre en évidence la catégorie dans la navigation
         this.highlightSelectedCategory(categoryId);
         
-        // Stocker le filtre actif
-        this.activeFilter = categoryId;
-        
-        // Appliquer le filtre aux vues du calendrier et aux événements à venir
-        this.updateCalendarEventsWithFilter();
+        // Appliquer le filtre à toutes les vues
+        this.updateCalendarEvents();
         
         // Afficher une notification
-        if (categoryId === 'all') {
-            this.notificationManager.showNotification('Affichage de tous les événements');
+        let message;
+        if (isReset) {
+            message = 'Affichage de tous les événements';
         } else {
-            this.notificationManager.showNotification(`Affichage des événements de la catégorie "${category ? category.name : 'sélectionnée'}"`);
+            try {
+                const category = this.categoryManager.dataManager.getCategoryById(categoryId);
+                message = `Affichage des événements de la catégorie "${category ? category.name : 'sélectionnée'}"`;
+            } catch (error) {
+                message = "Filtrage par catégorie appliqué";
+            }
         }
+        
+        this.notificationManager.showNotification(message);
+    }
+
+    // Réinitialiser le filtre - méthode simplifiée
+    resetCategoryFilter() {
+        this.filterEventsByCategory('all');
     }
     
+    // Méthode pour savoir si un filtre est actif
+    isCategoryFilterActive() {
+        return this.categoryFilter.active;
+    }
+    
+    // Méthode pour obtenir l'ID de la catégorie filtrée
+    getActiveCategoryFilter() {
+        return this.categoryFilter.categoryId;
+    }
+
     // Obtenir le nom de la vue actuelle
     getCurrentViewName() {
         switch (this.calendarManager.currentView) {
