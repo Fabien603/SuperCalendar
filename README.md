@@ -21,9 +21,9 @@ Une application de calendrier moderne et personnalisable basée sur Electron, vo
 
 Téléchargez la dernière version de SuperCalendar pour votre système d'exploitation:
 
-- [Windows (.exe)](https://github.com/username/SuperCalendar/releases/latest)
-- [macOS (.dmg)](https://github.com/username/SuperCalendar/releases/latest)
-- [Linux (.AppImage, .deb)](https://github.com/username/SuperCalendar/releases/latest)
+- [Windows (.exe)](https://github.com/Fabien603/SuperCalendar/releases/latest)
+- [macOS (.dmg)](https://github.com/Fabien603/SuperCalendar/releases/latest)
+- [Linux (.AppImage, .deb)](https://github.com/Fabien603/SuperCalendar/releases/latest)
 
 ### Pour les développeurs
 
@@ -37,7 +37,7 @@ Téléchargez la dernière version de SuperCalendar pour votre système d'exploi
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/username/SuperCalendar.git
+git clone https://github.com/Fabien603/SuperCalendar.git
 
 # Accéder au répertoire du projet
 cd SuperCalendar
