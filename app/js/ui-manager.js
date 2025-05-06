@@ -1,20 +1,7 @@
-// Gestionnaire de l'interface utilisateur pour SuperCalendrier
+
 import { DateUtils } from './utils/date-utils.js';
 
-/**
- * Classe UIManager responsable de la gestion de l'interface utilisateur
- * Coordonne les interactions entre l'utilisateur et les différents gestionnaires
- */
 export class UIManager {
-    /**
-     * Constructeur du gestionnaire d'interface utilisateur
-     * @param {CalendarManager} calendarManager - Gestionnaire de calendrier
-     * @param {EventManager} eventManager - Gestionnaire d'événements
-     * @param {CategoryManager} categoryManager - Gestionnaire de catégories
-     * @param {ThemeManager} themeManager - Gestionnaire de thèmes
-     * @param {NotificationManager} notificationManager - Gestionnaire de notifications
-     * @param {PrintManager} printManager - Gestionnaire d'impression
-     */
     constructor(calendarManager, eventManager, categoryManager, themeManager, notificationManager, printManager) {
         // Références aux autres gestionnaires
         this.calendarManager = calendarManager;
@@ -45,26 +32,16 @@ export class UIManager {
         this.toggleSidebarBtn = document.querySelector('.toggle-sidebar');
         this.sidebar = document.querySelector('.sidebar');
         
-        // État du filtre par catégorie (unifié)
-        this.categoryFilter = {
-            categoryId: 'all', // 'all' ou ID de catégorie
-            active: false      // Indique si un filtre est activé
+        // Propriété pour stocker le filtre actif
+                this.categoryFilter = {
+            active: false,
+            categoryId: 'all'
         };
     }
     
-    /**
-     * Initialise le gestionnaire d'interface utilisateur
-     */
     init() {
-        // Vérifier que le DOM est entièrement chargé avant d'initialiser les écouteurs d'événements
-        if (document.readyState === 'complete') {
-            this.initDOMListeners();
-        } else {
-            // Attendre que le DOM soit complètement chargé
-            window.addEventListener('load', () => {
-                this.initDOMListeners();
-            });
-        }
+        // Initialiser les écouteurs d'événements
+        this.initEventListeners();
         
         // Initialiser les évènements personnalisés
         this.initCustomEvents();
@@ -73,192 +50,6 @@ export class UIManager {
         this.updateUI();
     }
 
-    // Nouvelle méthode pour séparer l'initialisation des écouteurs DOM
-    initDOMListeners() {
-        // Navigation entre les vues
-        if (this.viewButtons && this.viewButtons.length > 0) {
-            this.viewButtons.forEach(button => {
-                if (button) {
-                    button.addEventListener('click', () => {
-                        const view = button.dataset.view;
-                        this.calendarManager.setView(view);
-                        this.updateViewButtons();
-                    });
-                }
-            });
-        } else {
-            console.warn('Boutons de vue non trouvés dans le DOM');
-        }
-        
-        // Bouton "Aujourd'hui"
-        if (this.todayBtn) {
-            this.todayBtn.addEventListener('click', () => {
-                this.calendarManager.goToToday();
-            });
-        } else {
-            console.warn('Bouton Aujourd\'hui non trouvé dans le DOM');
-        }
-        
-        // Bouton d'ajout rapide d'événement
-        if (this.addEventBtn) {
-            this.addEventBtn.addEventListener('click', () => {
-                this.eventManager.openAddEventForm(new Date());
-            });
-        } else {
-            console.warn('Bouton d\'ajout d\'événement non trouvé dans le DOM');
-        }
-
-        // Bouton pour quitter l'application
-        const quitAppBtn = document.getElementById('quit-app-btn');
-        if (quitAppBtn) {
-            quitAppBtn.addEventListener('click', () => {
-                this.quitApplication();
-            });
-        } else {
-            console.warn('Bouton Quitter non trouvé dans le DOM');
-        }
-
-        // Bouton d'ouverture de la modal des catégories
-        if (this.addCategoryBtn) {
-            this.addCategoryBtn.addEventListener('click', () => {
-                this.openCategoriesModal();
-            });
-        } else {
-            console.warn('Bouton d\'ajout de catégorie non trouvé dans le DOM');
-        }
-        
-        // Ouvrir la modal des paramètres
-        if (this.settingsBtn) {
-            this.settingsBtn.addEventListener('click', () => {
-                this.openSettingsModal();
-            });
-        } else {
-            console.warn('Bouton des paramètres non trouvé dans le DOM');
-        }
-        
-        // Initialiser les autres écouteurs d'événements...
-        this.initOtherListeners();
-    }
-
-    // Méthode pour initialiser les autres écouteurs d'événements
-    initOtherListeners() {
-        // Ouvrir la modal d'import/export
-        if (this.importExportBtn) {
-            this.importExportBtn.addEventListener('click', () => {
-                this.openImportExportModal();
-            });
-        }
-        
-        // Ouvrir la modal d'impression
-        if (this.printBtn) {
-            this.printBtn.addEventListener('click', () => {
-                this.openPrintModal();
-            });
-        }
-        
-        // Toggle sidebar en mode responsive
-        if (this.toggleSidebarBtn && this.sidebar) {
-            this.toggleSidebarBtn.addEventListener('click', () => {
-                this.sidebar.classList.toggle('active');
-            });
-        }
-        
-        // Fermer les modals en cliquant en dehors
-        const modalOverlays = document.querySelectorAll('.modal-overlay');
-        if (modalOverlays && modalOverlays.length > 0) {
-            modalOverlays.forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.remove('active');
-                    }
-                });
-            });
-        }
-        
-        // Fermer les modals avec le bouton de fermeture
-        const modalCloseButtons = document.querySelectorAll('.modal-close');
-        if (modalCloseButtons && modalCloseButtons.length > 0) {
-            modalCloseButtons.forEach(closeBtn => {
-                closeBtn.addEventListener('click', () => {
-                    const overlay = closeBtn.closest('.modal-overlay');
-                    if (overlay) {
-                        overlay.classList.remove('active');
-                    }
-                });
-            });
-        }
-        
-        // Écouteurs pour l'import/export
-        this.initImportExportListeners();
-        
-        // Écouteurs pour l'impression
-        this.initPrintListeners();
-        
-        // Écouteurs pour les paramètres
-        this.initSettingsListeners();
-    }
-
-    // Méthode pour initialiser les écouteurs d'import/export
-    initImportExportListeners() {
-        const exportJsonBtn = document.getElementById('export-json');
-        if (exportJsonBtn) {
-            exportJsonBtn.addEventListener('click', () => {
-                this.exportData('json');
-            });
-        }
-        
-        const exportIcsBtn = document.getElementById('export-ics');
-        if (exportIcsBtn) {
-            exportIcsBtn.addEventListener('click', () => {
-                this.exportData('ics');
-            });
-        }
-        
-        const importDataBtn = document.getElementById('import-data');
-        if (importDataBtn) {
-            importDataBtn.addEventListener('click', () => {
-                this.importData();
-            });
-        }
-    }
-
-    // Méthode pour initialiser les écouteurs d'impression
-    initPrintListeners() {
-        const printNowBtn = document.getElementById('print-now');
-        if (printNowBtn) {
-            printNowBtn.addEventListener('click', () => {
-                this.printManager.print();
-            });
-        }
-        
-        const printPreviewBtn = document.getElementById('print-preview');
-        if (printPreviewBtn) {
-            printPreviewBtn.addEventListener('click', () => {
-                this.printManager.preview();
-            });
-        }
-        
-        const exportPdfBtn = document.getElementById('export-pdf');
-        if (exportPdfBtn) {
-            exportPdfBtn.addEventListener('click', () => {
-                this.printManager.exportToPdf();
-            });
-        }
-    }
-
-    // Méthode pour initialiser les écouteurs des paramètres
-    initSettingsListeners() {
-        const saveSettingsBtn = document.getElementById('save-settings');
-        if (saveSettingsBtn) {
-            saveSettingsBtn.addEventListener('click', () => {
-                this.saveSettings();
-            });
-        }
-    }
-
-    /**
-     * Initialise tous les écouteurs d'événements d'interface
-     */
     initEventListeners() {
         // Navigation entre les vues
         this.viewButtons.forEach(button => {
@@ -282,7 +73,6 @@ export class UIManager {
                 this.eventManager.openAddEventForm(new Date());
             });
         }
-
         // Bouton pour quitter l'application
         const quitAppBtn = document.getElementById('quit-app-btn');
         if (quitAppBtn) {
@@ -395,127 +185,6 @@ export class UIManager {
         }
     }
     
-    /**
-     * Vérifie que les écouteurs d'événements sont correctement attachés
-     * et les réattache si nécessaire
-     */
-    verifyEventListeners() {
-        console.log('Vérification des écouteurs d\'événements...');
-        
-        // Liste des éléments critiques à vérifier
-        const criticalElements = [
-            { id: 'today-btn', name: 'Bouton Aujourd\'hui', property: 'todayBtn' },
-            { id: 'add-event-quick-btn', name: 'Bouton Ajouter un événement', property: 'addEventBtn' },
-            { id: 'quit-app-btn', name: 'Bouton Quitter', custom: true },
-            { id: 'settings-btn', name: 'Bouton Paramètres', property: 'settingsBtn' }
-        ];
-        
-        let missingElements = [];
-        let reattachedListeners = 0;
-        
-        // Vérifier chaque élément critique
-        criticalElements.forEach(element => {
-            const domElement = element.property ? this[element.property] : document.getElementById(element.id);
-            
-            if (!domElement) {
-                missingElements.push(element.name);
-                console.warn(`${element.name} non trouvé dans le DOM`);
-                
-                // Tenter de récupérer l'élément s'il n'a pas été trouvé lors de l'initialisation
-                if (element.property) {
-                    this[element.property] = document.getElementById(element.id);
-                    if (this[element.property]) {
-                        console.log(`${element.name} récupéré avec succès`);
-                        missingElements.pop(); // Retirer de la liste des éléments manquants
-                    }
-                }
-            } else {
-                console.log(`${element.name} trouvé dans le DOM`);
-                
-                // Vérifier si des écouteurs sont attachés
-                const hasClickListener = domElement._hasClickListener;
-                
-                if (!hasClickListener) {
-                    console.warn(`Aucun écouteur de clic trouvé pour ${element.name}, réattachement...`);
-                    
-                    // Attacher l'écouteur approprié
-                    if (element.id === 'today-btn') {
-                        domElement.addEventListener('click', () => {
-                            this.calendarManager.goToToday();
-                        });
-                        domElement._hasClickListener = true;
-                    } else if (element.id === 'add-event-quick-btn') {
-                        domElement.addEventListener('click', () => {
-                            this.eventManager.openAddEventForm(new Date());
-                        });
-                        domElement._hasClickListener = true;
-                    } else if (element.id === 'quit-app-btn') {
-                        domElement.addEventListener('click', () => {
-                            this.quitApplication();
-                        });
-                        domElement._hasClickListener = true;
-                    } else if (element.id === 'settings-btn') {
-                        domElement.addEventListener('click', () => {
-                            this.openSettingsModal();
-                        });
-                        domElement._hasClickListener = true;
-                    }
-                    
-                    reattachedListeners++;
-                }
-            }
-        });
-        
-        // Vérifier les boutons de vue
-        if (!this.viewButtons || this.viewButtons.length === 0) {
-            console.warn('Boutons de vue non trouvés dans le DOM');
-            
-            // Tenter de récupérer les boutons de vue
-            this.viewButtons = document.querySelectorAll('.nav-item[data-view]');
-            
-            if (this.viewButtons && this.viewButtons.length > 0) {
-                console.log('Boutons de vue récupérés avec succès');
-                
-                // Réattacher les écouteurs
-                this.viewButtons.forEach(button => {
-                    if (button) {
-                        button.addEventListener('click', () => {
-                            const view = button.dataset.view;
-                            this.calendarManager.setView(view);
-                            this.updateViewButtons();
-                        });
-                        button._hasClickListener = true;
-                        reattachedListeners++;
-                    }
-                });
-            } else {
-                missingElements.push('Boutons de vue');
-            }
-        }
-        
-        // Afficher les résultats de la vérification
-        if (missingElements.length > 0) {
-            console.error(`Éléments DOM manquants: ${missingElements.join(', ')}`);
-        } else {
-            console.log('Tous les éléments DOM critiques sont présents');
-        }
-        
-        if (reattachedListeners > 0) {
-            console.log(`${reattachedListeners} écouteurs d'événements réattachés`);
-        } else {
-            console.log('Tous les écouteurs d\'événements semblent correctement attachés');
-        }
-        
-        return {
-            success: missingElements.length === 0,
-            missingElements: missingElements,
-            reattachedListeners: reattachedListeners
-        };
-    }
-
-    /**
-     * Quitte l'application après confirmation et sauvegarde des données
-     */
     quitApplication() {
         // Demander confirmation avant de quitter
         const confirmQuit = confirm('Êtes-vous sûr de vouloir quitter SuperCalendrier?');
@@ -555,27 +224,28 @@ export class UIManager {
         }
     }
 
-    /**
-     * Initialise les écouteurs d'événements personnalisés
-     */
     initCustomEvents() {
-        // Événements du calendrier
+        // Écouteur pour les events personnalisés
         window.addEventListener('calendar:eventsUpdated', () => {
+            // Force une mise à jour complète des événements
             console.log('Événements mis à jour, rafraîchissement des vues...');
             this.updateCalendarEvents();
         });
         
         window.addEventListener('calendar:viewChanged', () => {
+            // Mise à jour nécessaire après un changement de vue - maintenir le filtrage
             this.updateCalendarEvents();
         });
         
         window.addEventListener('calendar:dateChanged', () => {
+            // Mise à jour nécessaire après un changement de date - maintenir le filtrage
             this.updateCalendarEvents();
         });
         
         // Événements liés aux catégories
         window.addEventListener('categories:updated', () => {
             this.updateCategories();
+            // Maintenir le filtrage après mise à jour des catégories
             this.updateCalendarEvents();
         });
         
@@ -596,9 +266,7 @@ export class UIManager {
         });
     }
 
-    /**
-     * Met à jour l'ensemble de l'interface utilisateur
-     */
+    // Mettre à jour l'interface utilisateur    
     updateUI() {
         // Mettre à jour les catégories
         this.updateCategories();
@@ -613,9 +281,7 @@ export class UIManager {
         this.themeManager.applyTheme();
     }
     
-    /**
-     * Met à jour le titre de la vue avec indication du filtre si actif
-     */
+    // Mise à jour du titre avec indication du filtre si actif
     updateViewTitle() {
         const viewTitle = document.getElementById('current-view-title');
         if (!viewTitle) return;
@@ -636,9 +302,7 @@ export class UIManager {
         }
     }
 
-    /**
-     * Met à jour les boutons de vue en fonction de la vue active
-     */
+    // Mettre à jour les boutons de vue et maintenir l'état du filtre
     updateViewButtons() {
         const currentView = this.calendarManager.currentView;
         
@@ -654,10 +318,7 @@ export class UIManager {
         this.updateViewTitle();
     }
     
-    /**
-     * Met à jour les événements affichés dans le calendrier 
-     * en appliquant le filtre actif si nécessaire
-     */
+    // Mise à jour des événements du calendrier avec gestion améliorée du filtre
     updateCalendarEvents() {
         // Récupérer tous les événements
         const allEvents = this.categoryManager.dataManager.getAllEvents();
@@ -681,10 +342,33 @@ export class UIManager {
         // Mise à jour du titre pour indiquer le filtrage si actif
         this.updateViewTitle();
     }
+
+    // Mettre à jour les événements du calendrier avec un filtre actif
+    updateCalendarEventsWithFilter() {
+        // Récupérer tous les événements
+        const allEvents = this.categoryManager.dataManager.getAllEvents();
+        
+        // Déterminer quels événements afficher
+        let eventsToShow;
+        
+        if (!this.activeFilter || this.activeFilter === 'all') {
+            // Pas de filtre actif, utiliser tous les événements
+            eventsToShow = allEvents;
+            console.log("Affichage de tous les événements (pas de filtre actif)");
+        } else {
+            // Filtrer les événements par catégorie
+            eventsToShow = allEvents.filter(event => event.categoryId === this.activeFilter);
+            console.log(`Affichage des événements de la catégorie ${this.activeFilter}, ${eventsToShow.length} événements trouvés`);
+        }
+        
+        // Mettre à jour les événements dans le calendrier avec les événements filtrés
+        this.eventManager.updateEventsInCalendar(this.calendarManager, eventsToShow);
+        
+        // Mettre à jour la liste des événements à venir
+        this.eventManager.renderUpcomingEvents(eventsToShow);
+    }
     
-    /**
-     * Met à jour les catégories dans l'interface
-     */
+    // Mettre à jour les catégories
     updateCategories() {
         // Mettre à jour la liste des catégories
         this.categoryManager.renderCategories();
@@ -696,10 +380,7 @@ export class UIManager {
         this.categoryManager.updateCategorySelect();
     }
     
-    /**
-     * Applique un filtre par catégorie pour les événements
-     * @param {string} categoryId - ID de la catégorie ou 'all' pour toutes les catégories
-     */
+    // Appliquer un filtre par catégorie - méthode simplifiée et clarifiée
     filterEventsByCategory(categoryId) {
         console.log('Application du filtre de catégorie:', categoryId);
         
@@ -734,33 +415,22 @@ export class UIManager {
         this.notificationManager.showNotification(message);
     }
 
-    /**
-     * Réinitialise le filtre de catégories (affiche tous les événements)
-     */
+    // Réinitialiser le filtre - méthode simplifiée
     resetCategoryFilter() {
         this.filterEventsByCategory('all');
     }
     
-    /**
-     * Vérifie si un filtre de catégorie est actuellement actif
-     * @returns {boolean} Vrai si un filtre est actif
-     */
+    // Méthode pour savoir si un filtre est actif
     isCategoryFilterActive() {
         return this.categoryFilter.active;
     }
     
-    /**
-     * Retourne l'ID de la catégorie actuellement filtrée
-     * @returns {string} ID de la catégorie ou 'all'
-     */
-    getCategoryFilterId() {
+    // Méthode pour obtenir l'ID de la catégorie filtrée
+    getActiveCategoryFilter() {
         return this.categoryFilter.categoryId;
     }
 
-    /**
-     * Obtient le nom de la vue actuelle en français
-     * @returns {string} Nom de la vue actuelle
-     */
+    // Obtenir le nom de la vue actuelle
     getCurrentViewName() {
         switch (this.calendarManager.currentView) {
             case 'yearly':
@@ -775,11 +445,13 @@ export class UIManager {
                 return 'Calendrier';
         }
     }
+
+    // Réinitialiser le filtre de catégories
+    resetCategoryFilter() {
+        this.filterEventsByCategory('all');
+    }
     
-    /**
-     * Met en évidence la catégorie sélectionnée dans la navigation
-     * @param {string} categoryId - ID de la catégorie sélectionnée
-     */
+    // Mettre en évidence la catégorie sélectionnée dans la navigation
     highlightSelectedCategory(categoryId) {
         // Supprimer la classe active de tous les éléments de navigation de catégorie
         const categoryItems = document.querySelectorAll('#categories-nav .nav-item');
@@ -791,25 +463,19 @@ export class UIManager {
         });
     }
 
-    /**
-     * Ouvre la modal de gestion des catégories
-     */
+    // Ouvrir la modal des catégories
     openCategoriesModal() {
         if (this.categoriesModal) {
             // Réinitialiser le formulaire de catégorie
             this.categoryManager.resetCategoryForm();
-            
             // Forcer une mise à jour de la liste des catégories
-            this.categoryManager.renderCategoryList();
-            
+            this.categoryManager.renderCategories();
             // Afficher la modale
             this.categoriesModal.classList.add('active');
         }
     }
     
-    /**
-     * Ouvre la modal des paramètres
-     */
+    // Ouvrir la modal des paramètres
     openSettingsModal() {
         if (!this.settingsModal) return;
         
@@ -865,9 +531,7 @@ export class UIManager {
         this.settingsModal.classList.add('active');
     }
 
-    /**
-     * Sauvegarde les paramètres et applique les changements
-     */
+    // Sauvegarder les paramètres
     async saveSettings() {
         // Récupérer les valeurs des champs
         const themeSelect = document.getElementById('settings-theme');
@@ -915,9 +579,7 @@ export class UIManager {
         }
     }
     
-    /**
-     * Ouvre la modal d'import/export
-     */
+    // Ouvrir la modal d'import/export
     openImportExportModal() {
         if (!this.importExportModal) return;
         
@@ -937,10 +599,7 @@ export class UIManager {
         this.importExportModal.classList.add('active');
     }
     
-    /**
-     * Exporte les données du calendrier
-     * @param {string} format - Format d'export ('json' ou 'ics')
-     */
+    // Exporter les données
     async exportData(format = 'json') {
         try {
             // Définir le nom de fichier par défaut
@@ -964,10 +623,10 @@ export class UIManager {
                     exportDate: new Date().toISOString()
                 }, null, 2);
             } else if (format === 'ics') {
-                // Pour le format iCal, utiliser la méthode d'exportation du gestionnaire de données
-                try {
+                // Pour le format iCal, utiliser ical-generator si disponible
+                if (window.icalGenerator) {
                     data = await this.categoryManager.dataManager.exportToICS();
-                } catch (error) {
+                } else {
                     throw new Error('Format iCal non encore pris en charge dans cette version');
                 }
             }
@@ -1007,9 +666,7 @@ export class UIManager {
         }
     }
     
-    /**
-     * Importe des données depuis un fichier
-     */
+    // Importer des données
     async importData() {
         try {
             const importFile = document.getElementById('import-file');
@@ -1039,11 +696,11 @@ export class UIManager {
                         const data = JSON.parse(content);
                         
                         // Valider les données
-                        if (!data || (!data.events && !data.categories)) {
+                        if (!data || !data.events || !data.categories) {
                             throw new Error('Format de données invalide');
                         }
                         
-                        // Utiliser la méthode importData du gestionnaire de données
+                        // Fusionner ou remplacer les données existantes
                         await this.categoryManager.dataManager.importData(data);
                         
                         // Mettre à jour l'interface
@@ -1057,7 +714,7 @@ export class UIManager {
                         // Afficher une notification
                         this.notificationManager.showNotification('Données importées avec succès');
                     } else if (file.name.endsWith('.ics')) {
-                        // Importer les données iCal si la méthode existe
+                        // Importer les données iCal si la fonctionnalité est disponible
                         if (this.categoryManager.dataManager.importFromICS) {
                             await this.categoryManager.dataManager.importFromICS(content);
                             
@@ -1118,9 +775,7 @@ export class UIManager {
         }
     }
 
-    /**
-     * Ouvre la modal d'impression
-     */
+    // Ouvrir la modal d'impression
     openPrintModal() {
         if (!this.printModal) return;
         
