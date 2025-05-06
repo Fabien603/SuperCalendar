@@ -2276,10 +2276,11 @@ export class EventManager {
                 // Heures concernées par l'événement
                 const startHour = Math.floor(startTime);
                 const endHour = Math.ceil(endTime);
+                console.log(`startHour: ${startHour}, endHour: ${endHour}`);
                 
                 // Trouver la colonne correspondant au jour et à l'heure de début
                 // Nombre de colonnes par rangée = 8 (1 pour les heures + 7 jours)
-                const columnIndex = dayIndex + startHour + 1; // +1 pour tenir compte de la colonne des heures
+                const columnIndex = dayIndex + 7 * startHour + 1; // +1 pour tenir compte de la colonne des heures
                 console.log(`columnIndex: ${columnIndex}`);
 
                 const dayColumn = Array.from(dayColumns).find((col, index) => 
