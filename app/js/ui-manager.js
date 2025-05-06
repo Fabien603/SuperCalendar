@@ -426,7 +426,7 @@ export class UIManager {
     }
     
     // Méthode pour obtenir l'ID de la catégorie filtrée
-    getCategoryFilter() {
+    getCategoryFilterId() {
         return this.categoryFilter.categoryId;
     }
 
