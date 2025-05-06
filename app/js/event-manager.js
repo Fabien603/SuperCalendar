@@ -2267,25 +2267,19 @@ export class EventManager {
             const endOfWeek = DateUtils.getEndOfWeek(calendarManager.currentDate);
             
             while (currentDate <= endDate && currentDate <= endOfWeek) {
-                // Calculer l'index du jour dans la semaine (0 = premier jour de la semaine)
-                const dayIndex = (currentDate.getDay() - calendarManager.firstDayOfWeek + 7) % 7;
-                
-                // Trouver toutes les colonnes du jour
-                const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
-                
                 // Heures concernées par l'événement
                 const startHour = Math.floor(startTime);
-                const endHour = Math.ceil(endTime);
                 
-                // Trouver la colonne correspondant au jour et à l'heure de début
-                // Nombre de colonnes par rangée = 8 (1 pour les heures + 7 jours)
-                const columnIndex = dayIndex + 7 * startHour + 1; // +1 pour tenir compte de la colonne des heures
-
-                const dayColumn = Array.from(dayColumns).find((col, index) => 
-                    index % 8 === dayIndex + 1 && // +1 pour tenir compte de la colonne des heures
-                    Math.floor(index / 8) === startHour
+                // Utiliser data-date et data-hour pour trouver précisément la colonne
+                const dateStr = DateUtils.formatDate(currentDate);
+                const dayColumn = calendarManager.weekCalendarContainer.querySelector(
+                    `.week-day-column[data-date="${dateStr}"][data-hour="${startHour}"]`
                 );
-                console.log(`Colonne trouvée pour l'événement ${event.title}:`, dayColumn.dayOffset);                
+                
+                // Logguer pour débogage
+                console.log(`Recherche colonne pour événement "${event.title}": date=${dateStr}, heure=${startHour}`);
+                console.log(`Colonne trouvée:`, dayColumn);
+                
                 if (dayColumn) {
                     // Créer l'élément d'événement
                     const eventElement = document.createElement('div');
@@ -2330,6 +2324,8 @@ export class EventManager {
                     
                     // Ajouter l'événement à la colonne
                     dayColumn.appendChild(eventElement);
+                } else {
+                    console.warn(`Colonne non trouvée pour la date ${dateStr} et l'heure ${startHour}`);
                 }
                 
                 // Passer au jour suivant
