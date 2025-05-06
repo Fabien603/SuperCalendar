@@ -2290,7 +2290,7 @@ export class EventManager {
                 
                 // Trouver la colonne correspondant au jour et à l'heure de début
                 // Nombre de colonnes par rangée = 8 (1 pour les heures + 7 jours)
-                const columnIndex = dayIndex + 7 * startHour + 1; // +1 pour tenir compte de la colonne des heures
+                const columnIndex = dayIndex * startHour + 1; // +1 pour tenir compte de la colonne des heures
                 
                 const dayColumn = Array.from(dayColumns).find((col, index) => 
                     index % 8 === dayIndex + 1 && // +1 pour tenir compte de la colonne des heures
