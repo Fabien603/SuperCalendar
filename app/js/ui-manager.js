@@ -396,6 +396,124 @@ export class UIManager {
     }
     
     /**
+     * Vérifie que les écouteurs d'événements sont correctement attachés
+     * et les réattache si nécessaire
+     */
+    verifyEventListeners() {
+        console.log('Vérification des écouteurs d\'événements...');
+        
+        // Liste des éléments critiques à vérifier
+        const criticalElements = [
+            { id: 'today-btn', name: 'Bouton Aujourd\'hui', property: 'todayBtn' },
+            { id: 'add-event-quick-btn', name: 'Bouton Ajouter un événement', property: 'addEventBtn' },
+            { id: 'quit-app-btn', name: 'Bouton Quitter', custom: true },
+            { id: 'settings-btn', name: 'Bouton Paramètres', property: 'settingsBtn' }
+        ];
+        
+        let missingElements = [];
+        let reattachedListeners = 0;
+        
+        // Vérifier chaque élément critique
+        criticalElements.forEach(element => {
+            const domElement = element.property ? this[element.property] : document.getElementById(element.id);
+            
+            if (!domElement) {
+                missingElements.push(element.name);
+                console.warn(`${element.name} non trouvé dans le DOM`);
+                
+                // Tenter de récupérer l'élément s'il n'a pas été trouvé lors de l'initialisation
+                if (element.property) {
+                    this[element.property] = document.getElementById(element.id);
+                    if (this[element.property]) {
+                        console.log(`${element.name} récupéré avec succès`);
+                        missingElements.pop(); // Retirer de la liste des éléments manquants
+                    }
+                }
+            } else {
+                console.log(`${element.name} trouvé dans le DOM`);
+                
+                // Vérifier si des écouteurs sont attachés
+                const hasClickListener = domElement._hasClickListener;
+                
+                if (!hasClickListener) {
+                    console.warn(`Aucun écouteur de clic trouvé pour ${element.name}, réattachement...`);
+                    
+                    // Attacher l'écouteur approprié
+                    if (element.id === 'today-btn') {
+                        domElement.addEventListener('click', () => {
+                            this.calendarManager.goToToday();
+                        });
+                        domElement._hasClickListener = true;
+                    } else if (element.id === 'add-event-quick-btn') {
+                        domElement.addEventListener('click', () => {
+                            this.eventManager.openAddEventForm(new Date());
+                        });
+                        domElement._hasClickListener = true;
+                    } else if (element.id === 'quit-app-btn') {
+                        domElement.addEventListener('click', () => {
+                            this.quitApplication();
+                        });
+                        domElement._hasClickListener = true;
+                    } else if (element.id === 'settings-btn') {
+                        domElement.addEventListener('click', () => {
+                            this.openSettingsModal();
+                        });
+                        domElement._hasClickListener = true;
+                    }
+                    
+                    reattachedListeners++;
+                }
+            }
+        });
+        
+        // Vérifier les boutons de vue
+        if (!this.viewButtons || this.viewButtons.length === 0) {
+            console.warn('Boutons de vue non trouvés dans le DOM');
+            
+            // Tenter de récupérer les boutons de vue
+            this.viewButtons = document.querySelectorAll('.nav-item[data-view]');
+            
+            if (this.viewButtons && this.viewButtons.length > 0) {
+                console.log('Boutons de vue récupérés avec succès');
+                
+                // Réattacher les écouteurs
+                this.viewButtons.forEach(button => {
+                    if (button) {
+                        button.addEventListener('click', () => {
+                            const view = button.dataset.view;
+                            this.calendarManager.setView(view);
+                            this.updateViewButtons();
+                        });
+                        button._hasClickListener = true;
+                        reattachedListeners++;
+                    }
+                });
+            } else {
+                missingElements.push('Boutons de vue');
+            }
+        }
+        
+        // Afficher les résultats de la vérification
+        if (missingElements.length > 0) {
+            console.error(`Éléments DOM manquants: ${missingElements.join(', ')}`);
+        } else {
+            console.log('Tous les éléments DOM critiques sont présents');
+        }
+        
+        if (reattachedListeners > 0) {
+            console.log(`${reattachedListeners} écouteurs d'événements réattachés`);
+        } else {
+            console.log('Tous les écouteurs d\'événements semblent correctement attachés');
+        }
+        
+        return {
+            success: missingElements.length === 0,
+            missingElements: missingElements,
+            reattachedListeners: reattachedListeners
+        };
+    }
+
+    /**
      * Quitte l'application après confirmation et sauvegarde des données
      */
     quitApplication() {
