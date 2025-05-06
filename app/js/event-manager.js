@@ -2269,10 +2269,10 @@ export class EventManager {
             while (currentDate <= endDate && currentDate <= endOfWeek) {
                 // Calculer l'index du jour dans la semaine (0 = premier jour de la semaine)
                 const dayIndex = (currentDate.getDay() - calendarManager.firstDayOfWeek + 7) % 7;
-                console.log(`Événement: ${event.title}, Date: ${currentDate.toISOString()}, Index calculé: ${dayIndex}`);
                 
                 // Trouver toutes les colonnes du jour
                 const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
+                console.log(`Événement: ${dayColumns}`);
                 
                 // Heures concernées par l'événement
                 const startHour = Math.floor(startTime);
