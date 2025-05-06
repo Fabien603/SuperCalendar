@@ -2267,9 +2267,20 @@ export class EventManager {
             const endOfWeek = DateUtils.getEndOfWeek(calendarManager.currentDate);
             
             while (currentDate <= endDate && currentDate <= endOfWeek) {
-                // Calculer l'index du jour dans la semaine (0 = premier jour de la semaine)
-                const dayIndex = (currentDate.getDay() - calendarManager.firstDayOfWeek + 7) % 7;
-                
+                // Calculer correctement l'index du jour en utilisant la date réelle
+                const startOfWeekDate = new Date(startOfWeek);
+                const currentDateCopy = new Date(currentDate);
+
+                // Normaliser les heures pour éviter les problèmes de comparaison
+                startOfWeekDate.setHours(0, 0, 0, 0);
+                currentDateCopy.setHours(0, 0, 0, 0);
+
+                // Calculer la différence en jours
+                const diffDays = Math.floor((currentDateCopy - startOfWeekDate) / (24 * 60 * 60 * 1000));
+                const dayIndex = diffDays;
+
+                console.log(`Événement: ${event.title}, Date: ${currentDate.toISOString()}, Index calculé: ${dayIndex}`);
+
                 // Trouver toutes les colonnes du jour
                 const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
                 
