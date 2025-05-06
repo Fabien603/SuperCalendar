@@ -2285,7 +2285,7 @@ export class EventManager {
                     index % 8 === dayIndex + 1 && // +1 pour tenir compte de la colonne des heures
                     Math.floor(index / 8) === startHour
                 );
-                console.log(`Colonne trouvée pour l'événement ${event.title}:`, dayColumn.HTMLElement);                
+                console.log(`Colonne trouvée pour l'événement ${event.title}:`, dayColumn.dateString);                
                 if (dayColumn) {
                     // Créer l'élément d'événement
                     const eventElement = document.createElement('div');
