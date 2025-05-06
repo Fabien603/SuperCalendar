@@ -1064,7 +1064,7 @@ input:checked + .slider:before {
 .notification {
     position: fixed;
     top: 20px;
-    right: 20px;
+    right: 50%;
     background-color: var(--success);
     color: white;
     padding: 15px 20px;
