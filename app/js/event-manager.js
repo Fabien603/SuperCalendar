@@ -2272,23 +2272,20 @@ export class EventManager {
                 
                 // Trouver toutes les colonnes du jour
                 const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
-                console.log(`dayColumns: ${dayColumns.getAllEvents[0]}`);
-
+                
                 // Heures concernées par l'événement
                 const startHour = Math.floor(startTime);
                 const endHour = Math.ceil(endTime);
-                console.log(`startHour: ${startHour}, endHour: ${endHour}`);
                 
                 // Trouver la colonne correspondant au jour et à l'heure de début
                 // Nombre de colonnes par rangée = 8 (1 pour les heures + 7 jours)
                 const columnIndex = dayIndex + 7 * startHour + 1; // +1 pour tenir compte de la colonne des heures
-                console.log(`columnIndex: ${columnIndex}`);
 
                 const dayColumn = Array.from(dayColumns).find((col, index) => 
                     index % 8 === dayIndex + 1 && // +1 pour tenir compte de la colonne des heures
                     Math.floor(index / 8) === startHour
                 );
-                
+                console.log(`Colonne trouvée pour l'événement ${event.title}:`, dayColumn);                
                 if (dayColumn) {
                     // Créer l'élément d'événement
                     const eventElement = document.createElement('div');
