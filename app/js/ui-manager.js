@@ -48,6 +48,17 @@ export class UIManager {
         
         // Initialiser les interfaces
         this.updateUI();
+        
+        // Forcer une mise à jour des boutons et du filtre
+        this.resetCategoryFilter();
+        
+        // S'assurer que les boutons sont bien activés
+        setTimeout(() => {
+            this.updateViewButtons();
+            
+            // Réinitialiser explicitement le filtre pour s'assurer que l'UI est mise à jour
+            this.filterEventsByCategory('all');
+        }, 100);
     }
 
     initEventListeners() {
@@ -394,7 +405,7 @@ export class UIManager {
         };
         
         // Mettre en évidence la catégorie dans la navigation
-        // this.highlightSelectedCategory(categoryId);
+        this.highlightSelectedCategory(categoryId);
         
         // Appliquer le filtre à toutes les vues
         this.updateCalendarEvents();
