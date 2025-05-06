@@ -2272,8 +2272,8 @@ export class EventManager {
                 
                 // Trouver toutes les colonnes du jour
                 const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
-                console.log(`dayColumns: ${dayColumns.length}`);
-                
+                console.log(`dayColumns: ${dayColumns.getAllEvents[0]}`);
+
                 // Heures concernées par l'événement
                 const startHour = Math.floor(startTime);
                 const endHour = Math.ceil(endTime);
