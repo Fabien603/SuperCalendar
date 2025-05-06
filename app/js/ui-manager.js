@@ -56,14 +56,204 @@ export class UIManager {
      * Initialise le gestionnaire d'interface utilisateur
      */
     init() {
-        // Initialiser les écouteurs d'événements
-        this.initEventListeners();
+        // Vérifier que le DOM est entièrement chargé avant d'initialiser les écouteurs d'événements
+        if (document.readyState === 'complete') {
+            this.initDOMListeners();
+        } else {
+            // Attendre que le DOM soit complètement chargé
+            window.addEventListener('load', () => {
+                this.initDOMListeners();
+            });
+        }
         
         // Initialiser les évènements personnalisés
         this.initCustomEvents();
         
         // Initialiser les interfaces
         this.updateUI();
+    }
+
+    // Nouvelle méthode pour séparer l'initialisation des écouteurs DOM
+    initDOMListeners() {
+        // Navigation entre les vues
+        if (this.viewButtons && this.viewButtons.length > 0) {
+            this.viewButtons.forEach(button => {
+                if (button) {
+                    button.addEventListener('click', () => {
+                        const view = button.dataset.view;
+                        this.calendarManager.setView(view);
+                        this.updateViewButtons();
+                    });
+                }
+            });
+        } else {
+            console.warn('Boutons de vue non trouvés dans le DOM');
+        }
+        
+        // Bouton "Aujourd'hui"
+        if (this.todayBtn) {
+            this.todayBtn.addEventListener('click', () => {
+                this.calendarManager.goToToday();
+            });
+        } else {
+            console.warn('Bouton Aujourd\'hui non trouvé dans le DOM');
+        }
+        
+        // Bouton d'ajout rapide d'événement
+        if (this.addEventBtn) {
+            this.addEventBtn.addEventListener('click', () => {
+                this.eventManager.openAddEventForm(new Date());
+            });
+        } else {
+            console.warn('Bouton d\'ajout d\'événement non trouvé dans le DOM');
+        }
+
+        // Bouton pour quitter l'application
+        const quitAppBtn = document.getElementById('quit-app-btn');
+        if (quitAppBtn) {
+            quitAppBtn.addEventListener('click', () => {
+                this.quitApplication();
+            });
+        } else {
+            console.warn('Bouton Quitter non trouvé dans le DOM');
+        }
+
+        // Bouton d'ouverture de la modal des catégories
+        if (this.addCategoryBtn) {
+            this.addCategoryBtn.addEventListener('click', () => {
+                this.openCategoriesModal();
+            });
+        } else {
+            console.warn('Bouton d\'ajout de catégorie non trouvé dans le DOM');
+        }
+        
+        // Ouvrir la modal des paramètres
+        if (this.settingsBtn) {
+            this.settingsBtn.addEventListener('click', () => {
+                this.openSettingsModal();
+            });
+        } else {
+            console.warn('Bouton des paramètres non trouvé dans le DOM');
+        }
+        
+        // Initialiser les autres écouteurs d'événements...
+        this.initOtherListeners();
+    }
+
+    // Méthode pour initialiser les autres écouteurs d'événements
+    initOtherListeners() {
+        // Ouvrir la modal d'import/export
+        if (this.importExportBtn) {
+            this.importExportBtn.addEventListener('click', () => {
+                this.openImportExportModal();
+            });
+        }
+        
+        // Ouvrir la modal d'impression
+        if (this.printBtn) {
+            this.printBtn.addEventListener('click', () => {
+                this.openPrintModal();
+            });
+        }
+        
+        // Toggle sidebar en mode responsive
+        if (this.toggleSidebarBtn && this.sidebar) {
+            this.toggleSidebarBtn.addEventListener('click', () => {
+                this.sidebar.classList.toggle('active');
+            });
+        }
+        
+        // Fermer les modals en cliquant en dehors
+        const modalOverlays = document.querySelectorAll('.modal-overlay');
+        if (modalOverlays && modalOverlays.length > 0) {
+            modalOverlays.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // Fermer les modals avec le bouton de fermeture
+        const modalCloseButtons = document.querySelectorAll('.modal-close');
+        if (modalCloseButtons && modalCloseButtons.length > 0) {
+            modalCloseButtons.forEach(closeBtn => {
+                closeBtn.addEventListener('click', () => {
+                    const overlay = closeBtn.closest('.modal-overlay');
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // Écouteurs pour l'import/export
+        this.initImportExportListeners();
+        
+        // Écouteurs pour l'impression
+        this.initPrintListeners();
+        
+        // Écouteurs pour les paramètres
+        this.initSettingsListeners();
+    }
+
+    // Méthode pour initialiser les écouteurs d'import/export
+    initImportExportListeners() {
+        const exportJsonBtn = document.getElementById('export-json');
+        if (exportJsonBtn) {
+            exportJsonBtn.addEventListener('click', () => {
+                this.exportData('json');
+            });
+        }
+        
+        const exportIcsBtn = document.getElementById('export-ics');
+        if (exportIcsBtn) {
+            exportIcsBtn.addEventListener('click', () => {
+                this.exportData('ics');
+            });
+        }
+        
+        const importDataBtn = document.getElementById('import-data');
+        if (importDataBtn) {
+            importDataBtn.addEventListener('click', () => {
+                this.importData();
+            });
+        }
+    }
+
+    // Méthode pour initialiser les écouteurs d'impression
+    initPrintListeners() {
+        const printNowBtn = document.getElementById('print-now');
+        if (printNowBtn) {
+            printNowBtn.addEventListener('click', () => {
+                this.printManager.print();
+            });
+        }
+        
+        const printPreviewBtn = document.getElementById('print-preview');
+        if (printPreviewBtn) {
+            printPreviewBtn.addEventListener('click', () => {
+                this.printManager.preview();
+            });
+        }
+        
+        const exportPdfBtn = document.getElementById('export-pdf');
+        if (exportPdfBtn) {
+            exportPdfBtn.addEventListener('click', () => {
+                this.printManager.exportToPdf();
+            });
+        }
+    }
+
+    // Méthode pour initialiser les écouteurs des paramètres
+    initSettingsListeners() {
+        const saveSettingsBtn = document.getElementById('save-settings');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', () => {
+                this.saveSettings();
+            });
+        }
     }
 
     /**
