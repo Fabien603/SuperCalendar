@@ -68,8 +68,15 @@ class App {
             await this.dataManager.loadData();
             console.log('Données chargées avec succès');
             
-            // 3. Initialiser l'interface utilisateur
-            this.uiManager.init();
+            // 3. Initialiser l'interface utilisateur et s'assurer que tous les éléments sont chargés
+            // Attendre que le DOM soit complètement chargé pour éviter les problèmes d'initialisation des écouteurs
+            if (document.readyState === 'complete') {
+                this.uiManager.init();
+            } else {
+                window.addEventListener('load', () => {
+                    this.uiManager.init();
+                });
+            }
             console.log('Interface utilisateur initialisée');
             
             // 4. Initialiser les événements Electron si disponible
@@ -79,7 +86,7 @@ class App {
             this.calendarManager.renderCurrentView();
             console.log('Vue du calendrier rendue');
             
-            // 6. Mise à jour forcée des événements après initialisation
+            // 6. Mise à jour forcée des événements après initialisation avec un délai suffisant
             setTimeout(() => {
                 // Mettre à jour les événements dans la vue actuelle
                 this.eventManager.updateEventsInCalendar(this.calendarManager);
@@ -98,7 +105,11 @@ class App {
                 
                 // 8. Afficher une notification de bienvenue
                 this.notificationManager.showNotification('SuperCalendrier démarré avec succès');
-            }, 300);
+                
+                // 9. Vérification supplémentaire pour s'assurer que les écouteurs d'événements sont bien attachés
+                console.log('Vérification des écouteurs d\'événements...');
+                this.uiManager.verifyEventListeners();
+            }, 500); // Augmenter le délai pour s'assurer que tout est bien initialisé
             
             console.log('SuperCalendrier initialisé avec succès!');
         } catch (error) {
@@ -109,7 +120,7 @@ class App {
             );
         }
     }
-    
+
     /**
      * Initialise les événements spécifiques à Electron
      * si l'application est exécutée en mode desktop
