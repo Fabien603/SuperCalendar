@@ -2272,7 +2272,6 @@ export class EventManager {
                 
                 // Trouver toutes les colonnes du jour
                 const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
-                console.log(`Événement: ${dayColumns}`);
                 
                 // Heures concernées par l'événement
                 const startHour = Math.floor(startTime);
@@ -2281,7 +2280,8 @@ export class EventManager {
                 // Trouver la colonne correspondant au jour et à l'heure de début
                 // Nombre de colonnes par rangée = 8 (1 pour les heures + 7 jours)
                 const columnIndex = dayIndex + 7 * startHour + 1; // +1 pour tenir compte de la colonne des heures
-                
+                console.log(`columnIndex: ${columnIndex}`);
+
                 const dayColumn = Array.from(dayColumns).find((col, index) => 
                     index % 8 === dayIndex + 1 && // +1 pour tenir compte de la colonne des heures
                     Math.floor(index / 8) === startHour
