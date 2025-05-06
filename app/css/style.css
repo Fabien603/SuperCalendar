@@ -952,7 +952,7 @@ input:checked + .slider:before {
 /* Emoji picker */
 .emoji-picker {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(16, 1fr);
     gap: 10px;
     max-height: 300px;
     min-width: 550px;
