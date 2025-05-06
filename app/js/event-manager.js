@@ -2267,20 +2267,9 @@ export class EventManager {
             const endOfWeek = DateUtils.getEndOfWeek(calendarManager.currentDate);
             
             while (currentDate <= endDate && currentDate <= endOfWeek) {
-                // Calculer correctement l'index du jour en utilisant la date réelle
-                const startOfWeekDate = new Date(startOfWeek);
-                const currentDateCopy = new Date(currentDate);
-
-                // Normaliser les heures pour éviter les problèmes de comparaison
-                startOfWeekDate.setHours(0, 0, 0, 0);
-                currentDateCopy.setHours(0, 0, 0, 0);
-
-                // Calculer la différence en jours
-                const diffDays = Math.floor((currentDateCopy - startOfWeekDate) / (24 * 60 * 60 * 1000));
-                const dayIndex = diffDays;
-
-                console.log(`Événement: ${event.title}, Date: ${currentDate.toISOString()}, Index calculé: ${dayIndex}`);
-
+                // Calculer l'index du jour dans la semaine (0 = premier jour de la semaine)
+                const dayIndex = (currentDate.getDay() - calendarManager.firstDayOfWeek + 7) % 7;
+                
                 // Trouver toutes les colonnes du jour
                 const dayColumns = calendarManager.weekCalendarContainer.querySelectorAll('.week-day-column');
                 
@@ -2292,14 +2281,10 @@ export class EventManager {
                 // Nombre de colonnes par rangée = 8 (1 pour les heures + 7 jours)
                 const columnIndex = dayIndex + 7 * startHour + 1; // +1 pour tenir compte de la colonne des heures
                 
-                const dayColumn = Array.from(dayColumns).find((col, index) => {
-                    const colDay = index % 8 - 1; // -1 car la première colonne est pour les heures
-                    const colHour = Math.floor(index / 8);
-                    
-                    console.log(`Recherche: index=${index}, colDay=${colDay}, dayIndex=${dayIndex}, colHour=${colHour}, startHour=${startHour}`);
-                    
-                    return colDay === dayIndex && colHour === startHour;
-                });
+                const dayColumn = Array.from(dayColumns).find((col, index) => 
+                    index % 8 === dayIndex + 1 && // +1 pour tenir compte de la colonne des heures
+                    Math.floor(index / 8) === startHour
+                );
                 
                 if (dayColumn) {
                     // Créer l'élément d'événement
