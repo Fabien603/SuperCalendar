@@ -394,7 +394,7 @@ export class UIManager {
         };
         
         // Mettre en évidence la catégorie dans la navigation
-        this.highlightSelectedCategory(categoryId);
+        // this.highlightSelectedCategory(categoryId);
         
         // Appliquer le filtre à toutes les vues
         this.updateCalendarEvents();
@@ -456,7 +456,7 @@ export class UIManager {
         // Supprimer la classe active de tous les éléments de navigation de catégorie
         const categoryItems = document.querySelectorAll('#categories-nav .nav-item');
         categoryItems.forEach(item => {
-            //item.classList.remove('active');
+            item.classList.remove('active');
             if (item.dataset.categoryId === categoryId) {
                 item.classList.add('active');
             }
