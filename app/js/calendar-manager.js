@@ -634,11 +634,11 @@ export class CalendarManager {
         const firstDay = new Date(year, month, 1).getDay();
         console.log(`Premier jour du mois: ${firstDay}`);
         // Ajuster pour commencer par firstDayOfWeek
-        const firstDayAdjusted = (firstDay - this.firstDayOfWeek + 7) % 7;
+        const firstDayAdjusted = (firstDay || 7) - this.firstDayOfWeek;
         console.log(`Premier jour ajusté: ${firstDayAdjusted}`);
 
         // Date du premier jour affiché (peut être du mois précédent)
-        const startDate = new Date(year, month, 1 - firstDay);
+        const startDate = new Date(year, month, 1 - firstDayAdjusted);
         
         // Date actuelle pour mettre en évidence le jour courant
         const today = new Date();
