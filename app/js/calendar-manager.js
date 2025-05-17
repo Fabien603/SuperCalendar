@@ -618,7 +618,7 @@ export class CalendarManager {
         
         // Ajouter les jours selon firstDayOfWeek
         for (let i = 0; i < 7; i++) {
-            const dayIndex = ((this.firstDayOfWeek + i)-1) % 7;
+            const dayIndex = (this.firstDayOfWeek + i) % 7;
             const dayElement = document.createElement('div');
             dayElement.textContent = this.daysLong[dayIndex];
             weekdaysRow.appendChild(dayElement);
@@ -632,10 +632,9 @@ export class CalendarManager {
         
         // Déterminer le premier jour du mois
         const firstDay = new Date(year, month, 1).getDay();
-        console.log(`Premier jour de la semaine: ${this.firstDayOfWeek}`);
+
         // Ajuster pour commencer par firstDayOfWeek
-        const firstDayAdjusted = (firstDay || 7) - this.firstDayOfWeek;
-        console.log(`Premier jour ajusté: ${firstDayAdjusted}`);
+        const firstDayAdjusted = (firstDay - this.firstDayOfWeek + 7) % 7;
 
         // Date du premier jour affiché (peut être du mois précédent)
         const startDate = new Date(year, month, 1- firstDayAdjusted);
