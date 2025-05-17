@@ -632,7 +632,7 @@ export class CalendarManager {
         
         // Déterminer le premier jour du mois
         const firstDay = new Date(year, month, 1).getDay();
-        console.log(`Premier jour du mois: ${firstDay}`);
+        console.log(`Premier jour de la semaine: ${this.firstDayOfWeek}`);
         // Ajuster pour commencer par firstDayOfWeek
         const firstDayAdjusted = (firstDay || 7) - this.firstDayOfWeek;
         console.log(`Premier jour ajusté: ${firstDayAdjusted}`);
