@@ -61,13 +61,13 @@ export class CalendarManager {
          * Noms courts des jours en français
          * @type {Array<string>}
          */
-        this.days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-        
+        this.days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
         /**
          * Noms longs des jours en français
          * @type {Array<string>}
          */
-        this.daysLong = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        this.daysLong = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
         
         /**
          * Premier jour de la semaine (0 = Dimanche, 1 = Lundi)
