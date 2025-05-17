@@ -36,7 +36,7 @@ function createWindow() {
   });
 
   // Passer en plein écran immédiatement lors du lancement
-  mainWindow.setFullScreen(false);
+  mainWindow.setFullScreen(true);
 
   // Masquer la barre de menu
   mainWindow.setMenuBarVisibility(false);
