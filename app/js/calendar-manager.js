@@ -723,8 +723,8 @@ export class CalendarManager {
         weekdaysRow.className = 'weekdays';
         
         // Ajouter les jours selon firstDayOfWeek
-        for (let i = 0; i < 7; i++) {
-            const dayIndex = (this.firstDayOfWeek + i) % 8;
+        for (let i = 1; i < 8; i++) {
+            const dayIndex = (this.firstDayOfWeek + i) % 7;
             const dayElement = document.createElement('div');
             dayElement.textContent = this.daysLong[dayIndex];
             weekdaysRow.appendChild(dayElement);
