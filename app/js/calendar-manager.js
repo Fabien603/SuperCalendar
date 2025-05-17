@@ -592,112 +592,6 @@ export class CalendarManager {
     /**
      * Rend la vue mensuelle
      */
-    // renderMonthlyView() {
-    //     if (!this.monthCalendarContainer) {
-    //         console.error("Conteneur de calendrier mensuel non trouvé");
-    //         return;
-    //     }
-        
-    //     const year = this.currentDate.getFullYear();
-    //     const month = this.currentDate.getMonth();
-        
-    //     if (this.currentMonthLabel) {
-    //         this.currentMonthLabel.textContent = this.months[month];
-    //     }
-        
-    //     if (this.currentYearMonthlyLabel) {
-    //         this.currentYearMonthlyLabel.textContent = year;
-    //     }
-        
-    //     // Vider le conteneur
-    //     this.monthCalendarContainer.innerHTML = '';
-        
-    //     // Créer l'en-tête des jours de la semaine
-    //     const weekdaysRow = document.createElement('div');
-    //     weekdaysRow.className = 'weekdays';
-        
-    //     // Ajouter les jours selon firstDayOfWeek
-    //     for (let i = 0; i < 7; i++) {
-    //         const dayIndex = (this.firstDayOfWeek + i) % 7;
-    //         const dayElement = document.createElement('div');
-    //         dayElement.textContent = this.daysLong[dayIndex];
-    //         weekdaysRow.appendChild(dayElement);
-    //     }
-        
-    //     this.monthCalendarContainer.appendChild(weekdaysRow);
-        
-    //     // Créer la grille du mois
-    //     const monthGrid = document.createElement('div');
-    //     monthGrid.className = 'month-grid';
-        
-    //     // Déterminer le premier jour du mois
-    //     const firstDay = new Date(year, month, 1).getDay();
-    //     console.log(`Premier jour de la semaine: ${this.firstDayOfWeek}`);
-    //     // Ajuster pour commencer par firstDayOfWeek
-    //     const firstDayAdjusted = (firstDay || 7) - this.firstDayOfWeek;
-    //     console.log(`Premier jour ajusté: ${firstDayAdjusted}`);
-
-    //     // Date du premier jour affiché (peut être du mois précédent)
-    //     const startDate = new Date(year, month, 1- firstDayAdjusted);
-        
-    //     // Date actuelle pour mettre en évidence le jour courant
-    //     const today = new Date();
-        
-    //     // Générer 6 semaines (42 jours) pour couvrir le mois entier
-    //     for (let i = 0; i < 42; i++) {
-    //         const currentDate = new Date(startDate);
-    //         currentDate.setDate(startDate.getDate() + i);
-            
-    //         const currentMonth = currentDate.getMonth();
-    //         const currentDay = currentDate.getDate();
-            
-    //         const dayElement = document.createElement('div');
-    //         dayElement.className = 'month-day';
-            
-    //         // Ajouter la classe 'other-month' si le jour n'est pas dans le mois courant
-    //         if (currentMonth !== month) {
-    //             dayElement.classList.add('other-month');
-    //         }
-            
-    //         // Marquer le jour actuel
-    //         if (DateUtils.isSameDay(currentDate, today)) {
-    //             dayElement.classList.add('today');
-    //         }
-            
-    //         // En-tête du jour
-    //         const dayHeader = document.createElement('div');
-    //         dayHeader.className = 'month-day-header';
-            
-    //         const dayNumber = document.createElement('div');
-    //         dayNumber.className = 'month-day-number';
-    //         dayNumber.textContent = currentDay;
-            
-    //         dayHeader.appendChild(dayNumber);
-    //         dayElement.appendChild(dayHeader);
-            
-    //         // Conteneur pour les événements
-    //         const eventsContainer = document.createElement('div');
-    //         eventsContainer.className = 'month-day-events';
-    //         dayElement.appendChild(eventsContainer);
-            
-    //         // Ajouter un attribut de données pour la date
-    //         dayElement.dataset.date = DateUtils.formatDate(currentDate);
-            
-    //         // Ajouter l'événement de clic pour naviguer vers la vue quotidienne
-    //         dayElement.addEventListener('click', () => {
-    //             this.currentDate = new Date(currentDate);
-    //             this.setView('daily');
-    //         });
-            
-    //         monthGrid.appendChild(dayElement);
-    //     }
-        
-    //     this.monthCalendarContainer.appendChild(monthGrid);
-    // }
-    
-    /**
-     * Rend la vue mensuelle
-     */
     renderMonthlyView() {
         if (!this.monthCalendarContainer) {
             console.error("Conteneur de calendrier mensuel non trouvé");
@@ -738,35 +632,35 @@ export class CalendarManager {
         
         // Déterminer le premier jour du mois
         const firstDay = new Date(year, month, 1).getDay();
-        // ⚠️ Problème identifié : Correction de l'ajustement du premier jour
-        // Pour lundi comme premier jour (1), dimanche (0) doit être transformé en 6
+        console.log(`Premier jour de la semaine: ${this.firstDayOfWeek}`);
+        // Ajuster pour commencer par firstDayOfWeek
         const firstDayAdjusted = (firstDay || 7) - this.firstDayOfWeek;
-        
-        // Nombre de jours dans le mois
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        console.log(`Premier jour ajusté: ${firstDayAdjusted}`);
+
+        // Date du premier jour affiché (peut être du mois précédent)
+        const startDate = new Date(year, month, 1- firstDayAdjusted);
         
         // Date actuelle pour mettre en évidence le jour courant
         const today = new Date();
         
         // Générer 6 semaines (42 jours) pour couvrir le mois entier
         for (let i = 0; i < 42; i++) {
-            // Calculer le jour à afficher
-            const dayNumber = i - firstDayAdjusted + 1;
-            const isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
             
-            // Créer la date correspondante
-            const currentDate = new Date(year, month, dayNumber);
+            const currentMonth = currentDate.getMonth();
+            const currentDay = currentDate.getDate();
             
             const dayElement = document.createElement('div');
             dayElement.className = 'month-day';
             
             // Ajouter la classe 'other-month' si le jour n'est pas dans le mois courant
-            if (!isCurrentMonth) {
+            if (currentMonth !== month) {
                 dayElement.classList.add('other-month');
             }
             
             // Marquer le jour actuel
-            if (isCurrentMonth && DateUtils.isSameDay(currentDate, today)) {
+            if (DateUtils.isSameDay(currentDate, today)) {
                 dayElement.classList.add('today');
             }
             
@@ -774,70 +668,176 @@ export class CalendarManager {
             const dayHeader = document.createElement('div');
             dayHeader.className = 'month-day-header';
             
-            const dayNumberEl = document.createElement('div');
-            dayNumberEl.className = 'month-day-number';
-            // Afficher le jour du mois courant ou le jour du mois adjacent
-            dayNumberEl.textContent = isCurrentMonth ? dayNumber : 
-                (dayNumber <= 0 ? new Date(year, month, 0).getDate() + dayNumber : 
-                dayNumber - daysInMonth);
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'month-day-number';
+            dayNumber.textContent = currentDay;
             
-            dayHeader.appendChild(dayNumberEl);
+            dayHeader.appendChild(dayNumber);
             dayElement.appendChild(dayHeader);
             
-            // Conteneur pour les événements UNIQUEMENT pour les jours du mois courant
-            if (isCurrentMonth) {
-                const eventsContainer = document.createElement('div');
-                eventsContainer.className = 'month-day-events';
-                // Définir une hauteur fixe pour les événements
-                eventsContainer.style.maxHeight = "calc(100% - 30px)"; // Hauteur fixe moins la hauteur de l'en-tête
-                eventsContainer.style.overflow = "hidden"; // Les événements débordants seront masqués
-                dayElement.appendChild(eventsContainer);
-                
-                // Ajouter un attribut de données pour la date
-                dayElement.dataset.date = DateUtils.formatDate(currentDate);
-                
-                // Ajouter l'événement de clic pour naviguer vers la vue quotidienne
-                dayElement.addEventListener('click', () => {
-                    this.currentDate = new Date(currentDate);
-                    this.setView('daily');
-                });
-            }
+            // Conteneur pour les événements
+            const eventsContainer = document.createElement('div');
+            eventsContainer.className = 'month-day-events';
+            dayElement.appendChild(eventsContainer);
+            
+            // Ajouter un attribut de données pour la date
+            dayElement.dataset.date = DateUtils.formatDate(currentDate);
+            
+            // Ajouter l'événement de clic pour naviguer vers la vue quotidienne
+            dayElement.addEventListener('click', () => {
+                this.currentDate = new Date(currentDate);
+                this.setView('daily');
+            });
             
             monthGrid.appendChild(dayElement);
         }
         
         this.monthCalendarContainer.appendChild(monthGrid);
-        
-        // Ajouter du CSS pour garantir des cellules de taille fixe
-        const style = document.createElement('style');
-        style.textContent = `
-            .month-grid {
-                display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                grid-template-rows: repeat(6, 1fr);
-                height: calc(100% - 40px); /* Hauteur totale moins l'en-tête */
-            }
-            
-            .month-day {
-                min-height: 100px;
-                height: 100%;
-                border: 1px solid var(--border-color);
-                overflow: hidden;
-                position: relative;
-            }
-            
-            .month-day.other-month {
-                background-color: var(--background-secondary);
-                opacity: 0.6;
-            }
-            
-            .month-day-events {
-                overflow-y: auto;
-                max-height: calc(100% - 30px);
-            }
-        `;
-        document.head.appendChild(style);
     }
+    
+    /**
+     * Rend la vue mensuelle
+     */
+    // renderMonthlyView() {
+    //     if (!this.monthCalendarContainer) {
+    //         console.error("Conteneur de calendrier mensuel non trouvé");
+    //         return;
+    //     }
+        
+    //     const year = this.currentDate.getFullYear();
+    //     const month = this.currentDate.getMonth();
+        
+    //     if (this.currentMonthLabel) {
+    //         this.currentMonthLabel.textContent = this.months[month];
+    //     }
+        
+    //     if (this.currentYearMonthlyLabel) {
+    //         this.currentYearMonthlyLabel.textContent = year;
+    //     }
+        
+    //     // Vider le conteneur
+    //     this.monthCalendarContainer.innerHTML = '';
+        
+    //     // Créer l'en-tête des jours de la semaine
+    //     const weekdaysRow = document.createElement('div');
+    //     weekdaysRow.className = 'weekdays';
+        
+    //     // Ajouter les jours selon firstDayOfWeek
+    //     for (let i = 0; i < 7; i++) {
+    //         const dayIndex = ((this.firstDayOfWeek + i)-1) % 7;
+    //         const dayElement = document.createElement('div');
+    //         dayElement.textContent = this.daysLong[dayIndex];
+    //         weekdaysRow.appendChild(dayElement);
+    //     }
+        
+    //     this.monthCalendarContainer.appendChild(weekdaysRow);
+        
+    //     // Créer la grille du mois
+    //     const monthGrid = document.createElement('div');
+    //     monthGrid.className = 'month-grid';
+        
+    //     // Déterminer le premier jour du mois
+    //     const firstDay = new Date(year, month, 1).getDay();
+    //     // ⚠️ Problème identifié : Correction de l'ajustement du premier jour
+    //     // Pour lundi comme premier jour (1), dimanche (0) doit être transformé en 6
+    //     const firstDayAdjusted = (firstDay || 7) - this.firstDayOfWeek;
+        
+    //     // Nombre de jours dans le mois
+    //     const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+    //     // Date actuelle pour mettre en évidence le jour courant
+    //     const today = new Date();
+        
+    //     // Générer 6 semaines (42 jours) pour couvrir le mois entier
+    //     for (let i = 0; i < 42; i++) {
+    //         // Calculer le jour à afficher
+    //         const dayNumber = i - firstDayAdjusted + 1;
+    //         const isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+            
+    //         // Créer la date correspondante
+    //         const currentDate = new Date(year, month, dayNumber);
+            
+    //         const dayElement = document.createElement('div');
+    //         dayElement.className = 'month-day';
+            
+    //         // Ajouter la classe 'other-month' si le jour n'est pas dans le mois courant
+    //         if (!isCurrentMonth) {
+    //             dayElement.classList.add('other-month');
+    //         }
+            
+    //         // Marquer le jour actuel
+    //         if (isCurrentMonth && DateUtils.isSameDay(currentDate, today)) {
+    //             dayElement.classList.add('today');
+    //         }
+            
+    //         // En-tête du jour
+    //         const dayHeader = document.createElement('div');
+    //         dayHeader.className = 'month-day-header';
+            
+    //         const dayNumberEl = document.createElement('div');
+    //         dayNumberEl.className = 'month-day-number';
+    //         // Afficher le jour du mois courant ou le jour du mois adjacent
+    //         dayNumberEl.textContent = isCurrentMonth ? dayNumber : 
+    //             (dayNumber <= 0 ? new Date(year, month, 0).getDate() + dayNumber : 
+    //             dayNumber - daysInMonth);
+            
+    //         dayHeader.appendChild(dayNumberEl);
+    //         dayElement.appendChild(dayHeader);
+            
+    //         // Conteneur pour les événements UNIQUEMENT pour les jours du mois courant
+    //         if (isCurrentMonth) {
+    //             const eventsContainer = document.createElement('div');
+    //             eventsContainer.className = 'month-day-events';
+    //             // Définir une hauteur fixe pour les événements
+    //             eventsContainer.style.maxHeight = "calc(100% - 30px)"; // Hauteur fixe moins la hauteur de l'en-tête
+    //             eventsContainer.style.overflow = "hidden"; // Les événements débordants seront masqués
+    //             dayElement.appendChild(eventsContainer);
+                
+    //             // Ajouter un attribut de données pour la date
+    //             dayElement.dataset.date = DateUtils.formatDate(currentDate);
+                
+    //             // Ajouter l'événement de clic pour naviguer vers la vue quotidienne
+    //             dayElement.addEventListener('click', () => {
+    //                 this.currentDate = new Date(currentDate);
+    //                 this.setView('daily');
+    //             });
+    //         }
+            
+    //         monthGrid.appendChild(dayElement);
+    //     }
+        
+    //     this.monthCalendarContainer.appendChild(monthGrid);
+        
+    //     // Ajouter du CSS pour garantir des cellules de taille fixe
+    //     const style = document.createElement('style');
+    //     style.textContent = `
+    //         .month-grid {
+    //             display: grid;
+    //             grid-template-columns: repeat(7, 1fr);
+    //             grid-template-rows: repeat(6, 1fr);
+    //             height: calc(100% - 40px); /* Hauteur totale moins l'en-tête */
+    //         }
+            
+    //         .month-day {
+    //             min-height: 100px;
+    //             height: 100%;
+    //             border: 1px solid var(--border-color);
+    //             overflow: hidden;
+    //             position: relative;
+    //         }
+            
+    //         .month-day.other-month {
+    //             background-color: var(--background-secondary);
+    //             opacity: 0.6;
+    //         }
+            
+    //         .month-day-events {
+    //             overflow-y: auto;
+    //             max-height: calc(100% - 30px);
+    //         }
+    //     `;
+    //     document.head.appendChild(style);
+    // }
 
     /**
      * Rend la vue hebdomadaire
